@@ -5,18 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2026 台大生工營</title>
     
-    <!-- 引入 FontAwesome 圖示 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* --- 1. 設計系統 (Design System) --- */
+        /* --- 設計系統 --- */
         :root {
-            --primary: #2AB7CA; /* 海報亮青色 */
+            --primary: #2AB7CA; 
             --primary-dark: #239cb0;
-            --secondary: #76C95A; /* 海報草地綠 */
-            --accent: #FF9F1C; /* 橘色點綴 */
-            --bg: #F0F9FF;
-            --text: #333333;
+            --secondary: #76C95A; 
+            --accent: #FF9F1C; 
+            --bg: #F4F7F6;
+            --text: #333;
             --card-bg: #FFFFFF;
         }
 
@@ -26,378 +24,452 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0; padding: 0;
+            padding-bottom: 90px;
             overflow-x: hidden;
-            padding-bottom: 90px; /* 留給底部導航 */
         }
 
-        /* --- 2. 登入遮罩層 --- */
+        /* --- UI 元件 --- */
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+        .card {
+            background: var(--card-bg); border-radius: 16px; padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.02);
+            transition: 0.3s;
+        }
+        
+        /* 登入樣式 */
         #login-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            padding: 20px;
+            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;
         }
-        .login-card {
-            background: white; width: 100%; max-width: 350px;
-            padding: 30px; border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            text-align: center;
-        }
-        .login-logo {
-            width: 80px; height: 80px; background: var(--bg);
-            border-radius: 50%; margin: 0 auto 20px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 30px; color: var(--primary);
-        }
-
-        /* --- 3. 通用元件 --- */
-        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-        h1, h2, h3 { color: var(--primary-dark); margin-top: 0; }
-        
-        .card {
-            background: var(--card-bg); border-radius: 16px; padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(42, 183, 202, 0.1);
-            border: 1px solid rgba(255,255,255,0.8);
-        }
-
+        .login-box { background: white; width: 100%; max-width: 320px; padding: 30px; border-radius: 24px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #eee; border-radius: 10px; font-size: 16px; outline: none; }
         .btn {
             background: var(--primary); color: white; border: none;
-            padding: 14px; border-radius: 50px; font-size: 16px; font-weight: bold;
-            width: 100%; cursor: pointer; transition: 0.2s; margin-top: 10px;
+            padding: 12px; border-radius: 12px; font-size: 16px; font-weight: bold;
+            width: 100%; cursor: pointer; margin-top: 10px;
         }
-        .btn:active { transform: scale(0.98); background: var(--primary-dark); }
-        .btn-secondary { background: var(--secondary); }
 
-        input, textarea {
-            width: 100%; padding: 12px; margin-bottom: 12px;
-            border: 2px solid #E0E0E0; border-radius: 10px;
-            font-size: 16px; outline: none; transition: 0.3s;
+        /* --- 行程表專用樣式 --- */
+        .day-tabs {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px;
+            scrollbar-width: none;
         }
-        input:focus, textarea:focus { border-color: var(--primary); }
-
-        /* --- 4. 實驗即時同步區塊 --- */
-        .lab-input-group {
-            margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #eee;
-        }
-        .lab-input-group label {
-            display: block; font-weight: bold; margin-bottom: 5px; color: #555;
-        }
-        .sync-status {
-            font-size: 12px; color: var(--secondary); text-align: right;
-            display: flex; align-items: center; justify-content: flex-end; gap: 5px;
-        }
-        .sync-dot {
-            width: 8px; height: 8px; background-color: #ccc; border-radius: 50%;
-        }
-        .sync-dot.active { background-color: var(--secondary); box-shadow: 0 0 5px var(--secondary); }
-
-        /* --- 5. 底部導航 --- */
-        .nav-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: white; display: flex; justify-content: space-around;
-            padding: 12px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.05);
-            z-index: 1000; padding-bottom: env(safe-area-inset-bottom);
-        }
-        .nav-item {
-            text-align: center; font-size: 11px; color: #aaa;
-            cursor: pointer; width: 20%; transition: 0.3s;
-        }
-        .nav-item.active { color: var(--primary); transform: translateY(-2px); }
-        .nav-icon { font-size: 22px; display: block; margin-bottom: 4px; }
-
-        /* --- 頁面切換 --- */
-        .page { display: none; padding-top: 20px; }
-        .page.active { display: block; animation: fadeIn 0.4s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .day-tabs::-webkit-scrollbar { display: none; }
         
-        /* Loading */
-        .loading { color: #ccc; font-style: italic; }
+        .day-tab {
+            background: white; color: #888; padding: 8px 16px; border-radius: 20px;
+            font-size: 14px; white-space: nowrap; border: 1px solid #eee;
+            cursor: pointer; transition: 0.3s;
+        }
+        .day-tab.active {
+            background: var(--primary); color: white; border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(42, 183, 202, 0.3);
+        }
+
+        .schedule-item {
+            display: flex; align-items: flex-start; gap: 15px;
+            padding: 15px; border-radius: 12px; background: white;
+            margin-bottom: 12px; position: relative; overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+        
+        /* 狀態樣式 */
+        .schedule-item.past { background: #f0f0f0; color: #aaa; border: 1px solid #eee; }
+        .schedule-item.past .time-badge { color: #aaa; background: #e0e0e0; }
+
+        .schedule-item.active-now {
+            background: #E0F7FA; border: 2px solid var(--primary);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(42, 183, 202, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(42, 183, 202, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(42, 183, 202, 0); }
+        }
+        .schedule-item.active-now::after {
+            content: "進行中"; position: absolute; top: 0; right: 0;
+            background: var(--accent); color: white; font-size: 10px;
+            padding: 3px 8px; border-bottom-left-radius: 8px;
+        }
+
+        .time-badge {
+            background: rgba(42, 183, 202, 0.1); color: var(--primary);
+            padding: 5px 8px; border-radius: 6px; font-weight: bold; font-size: 14px;
+            min-width: 60px; text-align: center;
+        }
+
+        /* --- 底部導航 --- */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: white;
+            display: flex; justify-content: space-around; padding: 10px 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 1000;
+        }
+        .nav-item { text-align: center; font-size: 10px; color: #bbb; width: 20%; cursor: pointer; }
+        .nav-item.active { color: var(--primary); transform: translateY(-3px); }
+        .nav-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+        /* 頁面切換 */
+        .page { display: none; opacity: 0; animation: fadeIn 0.3s forwards; }
+        .page.active { display: block; }
+        @keyframes fadeIn { to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <!-- 1. 登入畫面 (預設顯示) -->
     <div id="login-overlay">
-        <div class="login-card">
-            <div class="login-logo"><i class="fas fa-water"></i></div>
-            <h2 style="color: var(--primary);">學員登入</h2>
-            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">請輸入報名時的姓名與身分證字號</p>
-            
-            <input type="text" id="loginName" placeholder="姓名 (例：王小明)">
-            <input type="password" id="loginID" placeholder="身分證字號 (例：A123456789)">
-            
-            <button class="btn" id="btnLogin" onclick="handleLogin()">登入系統</button>
-            <p id="loginMsg" style="color: red; font-size: 13px; margin-top: 10px;"></p>
+        <div class="login-box">
+            <div style="font-size: 40px; margin-bottom: 10px; color: var(--primary);"><i class="fas fa-water"></i></div>
+            <h2 style="color: var(--primary);">2026 台大生工營</h2>
+            <p style="color: #888; font-size: 12px; margin-bottom: 20px;">請輸入報名資料登入</p>
+            <input type="text" id="loginName" class="login-input" placeholder="姓名 (王小明)">
+            <input type="password" id="loginID" class="login-input" placeholder="身分證字號 (A123...)">
+            <button class="btn" onclick="handleLogin()">開始旅程</button>
+            <p id="loginMsg" style="color: red; font-size: 12px; margin-top: 10px;"></p>
         </div>
     </div>
 
-    <!-- 2. App 主畫面 (登入後顯示) -->
     <div id="app-container" style="display: none;">
-        
-        <!-- 首頁 -->
+
         <div id="home" class="page active container">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h1 style="margin-bottom: 5px;">2026 台大生工營</h1>
-                <p style="color: #666; font-size: 14px;">Hi, <span id="user-name-display" style="font-weight: bold; color: var(--primary);">學員</span></p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">Hi, <span id="user-name">學員</span> 👋</h2>
+                <div onclick="toggleDevMode()" style="background:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                    <i class="fas fa-clock" style="color:var(--primary);"></i>
+                </div>
             </div>
 
-            <div class="card" style="background: linear-gradient(135deg, var(--primary), #4DD0E1); color: white; border:none;">
-                <h3><i class="fas fa-bullhorn"></i> 最新公告</h3>
-                <p>歡迎大家！現在請前往「大禮堂」集合參加開幕式。</p>
-                <div style="text-align: right; font-size: 12px; opacity: 0.8;">剛剛更新</div>
+            <div class="card" style="background: linear-gradient(135deg, var(--primary), #4DD0E1); color: white;">
+                <div style="background: rgba(255,255,255,0.2); display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-bottom: 10px;">
+                    <i class="fas fa-bullhorn"></i> 現在狀態
+                </div>
+                <h3 id="home-status-title" style="margin: 0 0 5px 0; font-size: 24px;">目前無活動</h3>
+                <p id="home-status-time" style="margin: 0; opacity: 0.9;">--:--</p>
             </div>
 
             <div class="card">
-                <h3><i class="fas fa-id-card"></i> 我的資訊</h3>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span>小隊</span>
-                    <strong style="color: var(--primary); font-size: 18px;">第 <span id="info-group">--</span> 小隊</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>房間</span>
-                    <strong style="color: var(--accent); font-size: 18px;"><span id="info-room">--</span> 房</strong>
-                </div>
-            </div>
-        </div>
-
-        <!-- 流程 -->
-        <div id="schedule" class="page container">
-            <h2>📅 活動流程</h2>
-            <div class="card">
-                <h3 style="color: var(--secondary);">Day 1 (今日)</h3>
-                <div style="border-left: 3px solid #eee; padding-left: 15px; margin-left: 5px;">
-                    <p><strong>09:00</strong> 始業式 <span style="font-size:12px; color:#888;">@博雅101</span></p>
-                    <p><strong>10:30</strong> 破冰遊戲 <span style="font-size:12px; color:#888;">@舊體育館</span></p>
-                    <p style="color: var(--primary);"><strong>14:00</strong> 實驗 I：水質檢測 <span style="font-size:12px; color:var(--primary);">@生工系館</span></p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 實驗 (重點功能) -->
-        <div id="lab" class="page container">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>⚗️ 實驗紀錄</h2>
-                <div class="sync-status">
-                    <div class="sync-dot active"></div> <span id="sync-text">雲端連線中</span>
-                </div>
-            </div>
-            
-            <div class="card" style="border-top: 4px solid var(--accent);">
-                <p style="margin-bottom: 20px; font-size: 14px; color: #666;">
-                    <i class="fas fa-users"></i> 這是第 <b id="lab-group-display">--</b> 小隊的共用紀錄表。<br>
-                    任何人輸入，組員手機都會同步！
-                </p>
-
-                <div class="lab-input-group">
-                    <label>1. 採樣水源地點</label>
-                    <input type="text" id="lab-q1" placeholder="例如：醉月湖畔" oninput="updateLabData('q1', this.value)">
-                </div>
-
-                <div class="lab-input-group">
-                    <label>2. 測量 pH 值</label>
-                    <input type="number" id="lab-q2" placeholder="例如：7.0" oninput="updateLabData('q2', this.value)">
-                </div>
-
-                <div class="lab-input-group">
-                    <label>3. 觀察現象描述</label>
-                    <textarea id="lab-q3" rows="3" placeholder="水體顏色、氣味..." oninput="updateLabData('q3', this.value)"></textarea>
-                </div>
-                
-                <p style="font-size: 12px; color: #aaa; text-align: center;">資料自動儲存於 Firebase</p>
-            </div>
-        </div>
-
-        <!-- 分房與室友 -->
-        <div id="room" class="page container">
-            <h2>🛌 住宿資訊</h2>
-            <div class="card">
-                <div style="text-align: center; padding: 20px 0;">
-                    <div style="font-size: 14px; color: #888;">你的房間</div>
-                    <div style="font-size: 60px; font-weight: 800; color: var(--accent); line-height: 1;">
-                        <span id="room-number-big">--</span>
+                <h3 style="font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">
+                    <i class="fas fa-id-card-alt" style="color: var(--accent);"></i> 我的資訊
+                </h3>
+                <div style="display: flex; gap: 15px;">
+                    <div style="flex: 1; text-align: center; background: #f9f9f9; padding: 10px; border-radius: 10px;">
+                        <div style="font-size: 12px; color: #888;">小隊</div>
+                        <div style="font-size: 20px; font-weight: bold; color: var(--text);" id="info-group">--</div>
+                    </div>
+                    <div style="flex: 1; text-align: center; background: #f9f9f9; padding: 10px; border-radius: 10px;">
+                        <div style="font-size: 12px; color: #888;">房號</div>
+                        <div style="font-size: 20px; font-weight: bold; color: var(--primary);" id="info-room">--</div>
                     </div>
                 </div>
-                <hr style="border: 0; border-top: 1px solid #eee;">
-                <h3><i class="fas fa-user-friends"></i> 你的室友</h3>
-                <ul id="roommate-list" style="padding-left: 20px; line-height: 1.8;">
-                    <li class="loading">讀取中...</li>
-                </ul>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-info-circle"></i> 營隊公告</h3>
+                <p>歡迎來到台大生工營！請隨時注意行程表更新。</p>
             </div>
         </div>
 
-        <!-- 底部導航 -->
-        <div class="nav-bar">
-            <div class="nav-item active" onclick="switchPage('home', this)">
-                <i class="fas fa-home nav-icon"></i>首頁
+        <div id="schedule" class="page container">
+            <h2>📅 活動日程</h2>
+            <div class="day-tabs" id="day-tabs"></div>
+            <div id="schedule-list"></div>
+        </div>
+
+        <div id="photos" class="page container">
+            <h2>📷 相簿</h2>
+            <div class="card" style="text-align: center; padding: 40px;">
+                <i class="fas fa-camera" style="font-size: 40px; color: #ddd; margin-bottom: 10px;"></i>
+                <p style="color: #888;">相簿功能即將上線</p>
             </div>
-            <div class="nav-item" onclick="switchPage('schedule', this)">
-                <i class="fas fa-calendar-alt nav-icon"></i>流程
+        </div>
+
+        <div id="activity" class="page container">
+            <h2>🏆 戰況排行榜</h2>
+            <div class="card">
+                <p style="font-size: 12px; color: #888; text-align: center; margin-bottom: 15px;">數據即時更新</p>
+                <div id="scoreboard">
+                    </div>
             </div>
-            <div class="nav-item" onclick="switchPage('lab', this)">
-                <i class="fas fa-flask nav-icon"></i>實驗
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="card" style="text-align: center; padding: 15px; margin-bottom: 0;" onclick="alert('這裡連接到之前的實驗頁面！')">
+                    <i class="fas fa-flask" style="font-size: 30px; color: var(--primary); margin-bottom: 10px;"></i>
+                    <h3 style="font-size: 14px;">實驗紀錄</h3>
+                </div>
+                <div class="card" style="text-align: center; padding: 15px; margin-bottom: 0;" onclick="alert('開啟成發筆記本...')">
+                    <i class="fas fa-sticky-note" style="font-size: 30px; color: var(--accent); margin-bottom: 10px;"></i>
+                    <h3 style="font-size: 14px;">成發筆記</h3>
+                </div>
             </div>
-            <div class="nav-item" onclick="switchPage('room', this)">
-                <i class="fas fa-bed nav-icon"></i>分房
+        </div>
+
+        <div id="info" class="page container">
+            <h2>ℹ️ 資訊</h2>
+            <div class="card">
+                <h3>📞 緊急聯絡</h3>
+                <button class="btn" onclick="window.location.href='tel:0912345678'"><i class="fas fa-phone"></i> 撥給總召</button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK (使用模組化版本) -->
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="switchPage('home', this)"><i class="fas fa-home nav-icon"></i>首頁</div>
+        <div class="nav-item" onclick="switchPage('schedule', this)"><i class="fas fa-calendar-alt nav-icon"></i>行程</div>
+        <div class="nav-item" onclick="switchPage('photos', this)"><i class="fas fa-images nav-icon"></i>相簿</div>
+        <div class="nav-item" onclick="switchPage('activity', this)"><i class="fas fa-trophy nav-icon"></i>活動</div>
+        <div class="nav-item" onclick="switchPage('info', this)"><i class="fas fa-info-circle nav-icon"></i>資訊</div>
+    </div>
+
     <script type="module">
-        // --- 1. 引入 Firebase ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- 2. 貼上你的設定 (已自動填入) ---
         const firebaseConfig = {
             apiKey: "AIzaSyCIrDF_HbcjgvafKfGRjF7VhB0pLpJO6W8",
             authDomain: "bse-camp.firebaseapp.com",
             projectId: "bse-camp",
             storageBucket: "bse-camp.firebasestorage.app",
             messagingSenderId: "287416151522",
-            appId: "1:287416151522:web:435f09982f54943ba75dbb",
-            measurementId: "G-2JWGRWT0EX"
+            appId: "1:287416151522:web:435f09982f54943ba75dbb"
         };
 
-        // 初始化
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        // --- 3. 營隊學員資料庫 (你可以手動在這裡編輯) ---
-        // 注意：這只是為了登入驗證用的本地名單，真實的實驗數據會存在雲端
-        // ID 欄位請用大寫
+        // --- 1. 資料庫 (學員名單 - 測試用) ---
         const campersDB = [
-            { name: "王小明", id: "A123456789", group: "1", room: "501", roommates: ["張三", "李四"] },
-            { name: "陳小美", id: "B223456789", group: "2", room: "502", roommates: ["林林", "小花"] },
-            { name: "123", id: "123", group: "1", room: "VIP", roommates: ["沒有人"] },
-            { name: "組員B", id: "456", group: "1", room: "503", roommates: ["王小明"] } 
+            { name: "王小明", id: "A123456789", group: "1", room: "501" },
+            { name: "陳小美", id: "B223456789", group: "5", room: "502" },
+            { name: "測試員", id: "123", group: "8", room: "VIP" }
         ];
 
-        let currentUser = null; // 登入後的使用者資料
+        // --- 2. 行程資料庫 (完整 5 天) ---
+        const scheduleDB = [
+            // Day 1 (1/26)
+            { day: "1/26", date: "2026-01-26", time: "12:30", title: "破冰", loc: "舊體育館" },
+            { day: "1/26", date: "2026-01-26", time: "13:00", title: "開營/成發介紹", loc: "博雅 101" },
+            { day: "1/26", date: "2026-01-26", time: "14:00", title: "系所介紹", loc: "生工系館" },
+            { day: "1/26", date: "2026-01-26", time: "15:00", title: "大破冰", loc: "舊體育館" },
+            { day: "1/26", date: "2026-01-26", time: "15:30", title: "大地遊戲", loc: "校園各處" },
+            { day: "1/26", date: "2026-01-26", time: "17:30", title: "吃晚餐", loc: "餐廳" },
+            { day: "1/26", date: "2026-01-26", time: "19:00", title: "密室逃脫", loc: "共同教室" },
+            { day: "1/26", date: "2026-01-26", time: "21:30", title: "整隊/搭捷運", loc: "公館站" },
+            { day: "1/26", date: "2026-01-26", time: "22:00", title: "到寓見青旅", loc: "青旅" },
 
-        // --- 4. 登入邏輯 ---
+            // Day 2 (1/27)
+            { day: "1/27", date: "2026-01-27", time: "06:30", title: "起床", loc: "青旅" },
+            { day: "1/27", date: "2026-01-27", time: "07:30", title: "吃早餐", loc: "青旅" },
+            { day: "1/27", date: "2026-01-27", time: "08:30", title: "搭捷運", loc: "捷運站" },
+            { day: "1/27", date: "2026-01-27", time: "09:00", title: "授課+實驗", loc: "生工系館" },
+            { day: "1/27", date: "2026-01-27", time: "12:00", title: "吃午餐", loc: "校園" },
+            { day: "1/27", date: "2026-01-27", time: "13:30", title: "工作坊", loc: "博雅" },
+            { day: "1/27", date: "2026-01-27", time: "17:30", title: "晚餐", loc: "餐廳" },
+            { day: "1/27", date: "2026-01-27", time: "18:30", title: "綜藝大聲公", loc: "晚會場地" },
+            { day: "1/27", date: "2026-01-27", time: "21:30", title: "整隊/搭捷運", loc: "公館站" },
+            { day: "1/27", date: "2026-01-27", time: "22:00", title: "到寓見青旅", loc: "青旅" },
+
+            // Day 3 (1/28) - 補完
+            { day: "1/28", date: "2026-01-28", time: "06:30", title: "起床", loc: "青旅" },
+            { day: "1/28", date: "2026-01-28", time: "07:30", title: "吃早餐", loc: "青旅" },
+            { day: "1/28", date: "2026-01-28", time: "08:30", title: "搭捷運", loc: "捷運站" },
+            { day: "1/28", date: "2026-01-28", time: "09:00", title: "授課+實驗", loc: "生工系館" },
+            { day: "1/28", date: "2026-01-28", time: "12:00", title: "吃午餐", loc: "校園" },
+            { day: "1/28", date: "2026-01-28", time: "13:00", title: "搭捷運", loc: "前往參訪地" },
+            { day: "1/28", date: "2026-01-28", time: "14:00", title: "參訪", loc: "校外" },
+            { day: "1/28", date: "2026-01-28", time: "17:00", title: "搭捷運", loc: "回公館" },
+            { day: "1/28", date: "2026-01-28", time: "17:30", title: "吃晚餐", loc: "餐廳" },
+            { day: "1/28", date: "2026-01-28", time: "18:30", title: "綜藝大聲公", loc: "晚會場地" },
+            { day: "1/28", date: "2026-01-28", time: "21:30", title: "整隊/搭捷運", loc: "公館站" },
+            { day: "1/28", date: "2026-01-28", time: "22:00", title: "到寓見青旅", loc: "青旅" },
+
+            // Day 4 (1/29) - 補完
+            { day: "1/29", date: "2026-01-29", time: "06:30", title: "起床", loc: "青旅" },
+            { day: "1/29", date: "2026-01-29", time: "07:30", title: "吃早餐", loc: "青旅" },
+            { day: "1/29", date: "2026-01-29", time: "08:30", title: "搭捷運", loc: "捷運站" },
+            { day: "1/29", date: "2026-01-29", time: "09:00", title: "參訪", loc: "校外" },
+            { day: "1/29", date: "2026-01-29", time: "12:00", title: "搭捷運", loc: "回公館" },
+            { day: "1/29", date: "2026-01-29", time: "12:30", title: "吃午餐", loc: "校園" },
+            { day: "1/29", date: "2026-01-29", time: "13:30", title: "RPG", loc: "校園各處" },
+            { day: "1/29", date: "2026-01-29", time: "17:30", title: "晚餐", loc: "餐廳" },
+            { day: "1/29", date: "2026-01-29", time: "18:30", title: "晚會", loc: "大禮堂" },
+            { day: "1/29", date: "2026-01-29", time: "21:30", title: "整隊/搭捷運", loc: "公館站" },
+            { day: "1/29", date: "2026-01-29", time: "22:00", title: "到寓見青旅", loc: "青旅" },
+
+            // Day 5 (1/30) - 補完
+            { day: "1/30", date: "2026-01-30", time: "06:30", title: "起床", loc: "青旅" },
+            { day: "1/30", date: "2026-01-30", time: "07:30", title: "吃早餐", loc: "青旅" },
+            { day: "1/30", date: "2026-01-30", time: "08:30", title: "搭捷運", loc: "捷運站" },
+            { day: "1/30", date: "2026-01-30", time: "09:00", title: "成發", loc: "博雅 101" },
+            { day: "1/30", date: "2026-01-30", time: "12:00", title: "After Party", loc: "秘密基地" }
+        ];
+
+        // --- 3. 戰況資料 (8 組) ---
+        const teamScores = [
+            { id: 1, score: 850 },
+            { id: 2, score: 720 },
+            { id: 3, score: 680 },
+            { id: 4, score: 900 },
+            { id: 5, score: 500 },
+            { id: 6, score: 600 },
+            { id: 7, score: 750 },
+            { id: 8, score: 400 }
+        ];
+
+        let mockTime = null;
+        let currentTabDay = "1/26";
+
+        // 登入
         window.handleLogin = async function() {
-            const btn = document.getElementById('btnLogin');
-            const msg = document.getElementById('loginMsg');
-            const name = document.getElementById('loginName').value.trim();
-            const id = document.getElementById('loginID').value.trim().toUpperCase();
-
-            btn.innerText = "驗證中...";
-            btn.disabled = true;
-
-            // Step A: 本地驗證 (防君子)
-            const user = campersDB.find(c => c.name === name && c.id === id);
-            
-            if (!user) {
-                msg.innerText = "找不到此資料，請檢查姓名或身分證字號。";
-                btn.innerText = "登入系統";
-                btn.disabled = false;
-                return;
-            }
-
-            // Step B: Firebase 匿名登入 (取得資料庫讀寫權限)
             try {
-                await signInAnonymously(auth);
-                console.log("Firebase 登入成功");
+                // await signInAnonymously(auth); // 測試時可註解
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('app-container').style.display = 'block';
                 
-                currentUser = user;
-                loginSuccess(user);
-
-            } catch (error) {
-                console.error(error);
-                msg.innerText = "連線失敗：" + error.message;
-                btn.innerText = "登入系統";
-                btn.disabled = false;
+                // 登入後寫入個資 (這次要填入 group 與 room)
+                const inputName = document.getElementById('loginName').value || "學員";
+                const inputID = document.getElementById('loginID').value;
+                const user = campersDB.find(c => c.name === inputName && c.id === inputID) || { name: inputName, group: "?", room: "?" };
+                
+                document.getElementById('user-name').innerText = user.name;
+                document.getElementById('info-group').innerText = user.group;
+                document.getElementById('info-room').innerText = user.room;
+                
+                initSchedule();
+                renderScoreboard(); // 記得啟動計分板
+            } catch(e) {
+                alert("登入錯誤: " + e.message);
             }
         };
 
-        function loginSuccess(user) {
-            // 隱藏登入頁，顯示主頁
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('app-container').style.display = 'block';
+        function initSchedule() {
+            const today = mockTime ? new Date(mockTime) : new Date();
+            const month = today.getMonth() + 1;
+            const date = today.getDate();
+            const dateString = `${month}/${date}`;
 
-            // 填入個人資訊
-            document.getElementById('user-name-display').innerText = user.name;
-            document.getElementById('info-group').innerText = user.group;
-            document.getElementById('info-room').innerText = user.room;
-            
-            // 填入分房頁面資訊
-            document.getElementById('room-number-big').innerText = user.room;
-            const matesHtml = user.roommates.map(m => `<li>${m}</li>`).join('');
-            document.getElementById('roommate-list').innerHTML = matesHtml || "<li>自己住真爽</li>";
+            const validDays = ["1/26", "1/27", "1/28", "1/29", "1/30"];
+            if (validDays.includes(dateString)) {
+                currentTabDay = dateString;
+            } else {
+                currentTabDay = "1/26";
+            }
 
-            // 填入實驗頁面資訊
-            document.getElementById('lab-group-display').innerText = user.group;
-
-            // *** 啟動即時監聽 (Real-time Listener) ***
-            initLabSync(user.group);
+            renderTabs();
+            renderList();
+            updateLiveStatus();
+            setInterval(updateLiveStatus, 60000);
         }
 
-        // --- 5. 實驗數據同步邏輯 (最核心功能) ---
-        let unsubscribeLab = null;
+        function renderTabs() {
+            const tabs = ["1/26", "1/27", "1/28", "1/29", "1/30"];
+            const container = document.getElementById('day-tabs');
+            container.innerHTML = tabs.map(day => `
+                <div class="day-tab ${day === currentTabDay ? 'active' : ''}" 
+                     onclick="switchTab('${day}')">
+                     ${day}
+                </div>
+            `).join('');
+        }
 
-        function initLabSync(groupId) {
-            const docRef = doc(db, "lab_results", `group_${groupId}`);
+        window.switchTab = function(day) {
+            currentTabDay = day;
+            renderTabs();
+            renderList();
+        }
 
-            // 監聽雲端資料變化
-            unsubscribeLab = onSnapshot(docRef, (docSnap) => {
-                const syncText = document.getElementById('sync-text');
-                const dot = document.querySelector('.sync-dot');
+        function renderList() {
+            const list = document.getElementById('schedule-list');
+            const dayEvents = scheduleDB.filter(e => e.day === currentTabDay);
+            const now = mockTime ? new Date(mockTime) : new Date();
+            const nowTimeVal = now.getHours() * 60 + now.getMinutes();
 
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    console.log("收到雲端更新:", data);
-                    
-                    // 更新輸入框 (如果使用者正在打字，要小心不要覆蓋，這裡做簡單處理)
-                    if (document.activeElement.id !== 'lab-q1') document.getElementById('lab-q1').value = data.q1 || "";
-                    if (document.activeElement.id !== 'lab-q2') document.getElementById('lab-q2').value = data.q2 || "";
-                    if (document.activeElement.id !== 'lab-q3') document.getElementById('lab-q3').value = data.q3 || "";
-                    
-                    syncText.innerText = "已同步最新資料";
-                    dot.classList.add('active');
-                } else {
-                    console.log("尚無資料，建立新文件中...");
+            list.innerHTML = dayEvents.map(item => {
+                let statusClass = "";
+                const itemTimeParts = item.time.split(':');
+                const itemTimeVal = parseInt(itemTimeParts[0]) * 60 + parseInt(itemTimeParts[1]);
+                const isToday = (now.getMonth() + 1 + "/" + now.getDate()) === item.day;
+
+                if (item.day < (now.getMonth()+1 + "/" + now.getDate())) {
+                    statusClass = "past"; 
+                } else if (isToday) {
+                    if (nowTimeVal >= itemTimeVal && nowTimeVal < itemTimeVal + 60) {
+                        statusClass = "active-now"; 
+                    } else if (nowTimeVal > itemTimeVal) {
+                        statusClass = "past";
+                    }
                 }
-            }, (error) => {
-                console.error("同步失敗:", error);
-                document.getElementById('sync-text').innerText = "連線中斷";
-                document.querySelector('.sync-dot').classList.remove('active');
-            });
+
+                return `
+                    <div class="schedule-item ${statusClass}">
+                        <div class="time-badge">${item.time}</div>
+                        <div style="flex:1;">
+                            <div style="font-weight:bold; font-size:16px;">${item.title}</div>
+                            <div style="font-size:13px; color:#888; margin-top:4px;">
+                                <i class="fas fa-map-marker-alt"></i> ${item.loc}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        // 當使用者輸入時，寫入雲端
-        window.updateLabData = async function(field, value) {
-            if (!currentUser) return;
+        // 渲染計分板 (支援 8 組)
+        function renderScoreboard() {
+            const board = document.getElementById('scoreboard');
+            const maxScore = Math.max(...teamScores.map(t => t.score), 100); // 避免 0 分錯誤
             
-            const groupId = currentUser.group;
-            const docRef = doc(db, "lab_results", `group_${groupId}`);
+            // 這裡不排序，依照小隊順序顯示比較好找
+            board.innerHTML = teamScores.map(team => `
+                <div class="score-row" style="display:flex; align-items:center; margin-bottom:12px;">
+                    <span style="width:50px; font-weight:bold; font-size:14px;">第 ${team.id} 小</span>
+                    <div style="flex:1; background:#eee; height:12px; border-radius:6px; margin:0 10px; overflow:hidden;">
+                        <div style="width:${(team.score / maxScore) * 100}%; background:var(--secondary); height:100%; border-radius:6px; transition:width 1s;"></div>
+                    </div>
+                    <span style="width:40px; text-align:right; font-weight:bold; color:var(--secondary);">${team.score}</span>
+                </div>
+            `).join('');
+        }
 
-            // 顯示同步中狀態
-            document.getElementById('sync-text').innerText = "儲存中...";
-            document.querySelector('.sync-dot').classList.remove('active');
+        function updateLiveStatus() {
+            const now = mockTime ? new Date(mockTime) : new Date();
+            const dateStr = (now.getMonth()+1) + "/" + now.getDate();
+            const timeVal = now.getHours() * 60 + now.getMinutes();
+            const todayEvents = scheduleDB.filter(e => e.day === dateStr);
+            const currentEvent = todayEvents.find(e => {
+                const t = parseInt(e.time.split(':')[0])*60 + parseInt(e.time.split(':')[1]);
+                return timeVal >= t && timeVal < t + 60;
+            });
 
-            try {
-                // merge: true 代表只更新修改的欄位，不刪除其他欄位
-                await setDoc(docRef, { [field]: value }, { merge: true });
-                // 成功後，上面的 onSnapshot 會再收到一次確認，狀態會變回「已同步」
-            } catch (e) {
-                console.error("寫入失敗", e);
-                alert("寫入失敗，請檢查網路");
+            if (currentEvent) {
+                document.getElementById('home-status-title').innerText = currentEvent.title;
+                document.getElementById('home-status-time').innerText = `正在進行 (${currentEvent.loc})`;
+            } else {
+                document.getElementById('home-status-title').innerText = "目前無活動";
+                document.getElementById('home-status-time').innerText = "休息中";
             }
-        };
+            renderList();
+        }
 
-        // --- 6. 頁面切換 ---
+        window.toggleDevMode = function() {
+            const input = prompt("【時光機】輸入模擬時間 (格式: 1/26 14:00)", "1/26 14:00");
+            if(input) {
+                const [d, t] = input.split(' ');
+                mockTime = new Date(`2026/${d} ${t}:00`);
+                initSchedule();
+                renderScoreboard();
+                alert(`時間已切換至 ${input}`);
+            }
+        }
+        
         window.switchPage = function(pageId, navElement) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             navElement.classList.add('active');
-        };
-
+        }
     </script>
 </body>
 </html>
