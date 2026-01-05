@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 台大生工營</title>
+    <title>2026 台大生工營 | 正式版</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        /* --- 設計系統 --- */
+        /* --- 設計系統 (Design System) --- */
         :root {
             --primary: #2AB7CA; 
             --primary-dark: #239cb0;
             --secondary: #76C95A; 
             --accent: #FF9F1C; 
+            --urgent: #e63946; /* 緊急公告紅 */
             --bg: #F4F7F6;
             --text: #333;
             --card-bg: #FFFFFF;
@@ -21,24 +23,33 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0; padding: 0;
-            padding-bottom: 90px;
-            overflow-x: hidden;
+            background-color: var(--bg); color: var(--text);
+            margin: 0; padding: 0; padding-bottom: 90px; overflow-x: hidden;
         }
 
-        /* --- UI 元件 --- */
+        /* 共用容器與卡片 */
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .card {
             background: var(--card-bg); border-radius: 16px; padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid rgba(0,0,0,0.02);
-            transition: 0.3s;
+            margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.02); position: relative;
+            transition: transform 0.2s;
         }
         
-        /* 登入樣式 */
+        /* 🚨 緊急公告特效 */
+        .card.urgent { border: 2px solid var(--urgent); animation: border-pulse 2s infinite; }
+        @keyframes border-pulse { 0% { border-color: var(--urgent); box-shadow: 0 0 5px rgba(230,57,70,0.2); } 50% { border-color: #ffb3b8; box-shadow: 0 0 15px rgba(230,57,70,0.4); } 100% { border-color: var(--urgent); box-shadow: 0 0 5px rgba(230,57,70,0.2); } }
+
+        /* 按鈕樣式 */
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-secondary { background: var(--secondary); }
+        .back-btn { background: none; border: none; font-size: 16px; color: #666; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+
+        /* 登入頁面 */
         #login-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -46,130 +57,46 @@
         }
         .login-box { background: white; width: 100%; max-width: 320px; padding: 30px; border-radius: 24px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .login-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #eee; border-radius: 10px; font-size: 16px; outline: none; }
-        .btn {
-            background: var(--primary); color: white; border: none;
-            padding: 12px; border-radius: 12px; font-size: 16px; font-weight: bold;
-            width: 100%; cursor: pointer; margin-top: 10px;
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-        }
-        .btn:active { transform: scale(0.98); }
 
-        /* --- 行程表專用樣式 --- */
-        .day-tabs {
-            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px;
-            scrollbar-width: none;
+        /* Loading 遮罩 */
+        #loading-mask {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); z-index: 8000;
+            display: none; justify-content: center; align-items: center; flex-direction: column;
         }
+
+        /* 行程表 Tab 樣式 */
+        .day-tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; scrollbar-width: none; }
         .day-tabs::-webkit-scrollbar { display: none; }
-        
         .day-tab {
             background: white; color: #888; padding: 8px 16px; border-radius: 20px;
-            font-size: 14px; white-space: nowrap; border: 1px solid #eee;
-            cursor: pointer; transition: 0.3s;
+            font-size: 14px; white-space: nowrap; border: 1px solid #eee; cursor: pointer;
         }
-        .day-tab.active {
-            background: var(--primary); color: white; border-color: var(--primary);
-            box-shadow: 0 4px 10px rgba(42, 183, 202, 0.3);
-        }
+        .day-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(42, 183, 202, 0.3); }
 
-        .schedule-item {
-            display: flex; align-items: flex-start; gap: 15px;
-            padding: 15px; border-radius: 12px; background: white;
-            margin-bottom: 12px; position: relative; overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-        }
-        
-        .schedule-item.past { background: #f0f0f0; color: #aaa; border: 1px solid #eee; }
-        .schedule-item.past .time-badge { color: #aaa; background: #e0e0e0; }
+        .schedule-item { display: flex; align-items: flex-start; gap: 15px; padding: 15px; border-radius: 12px; background: white; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .schedule-item.active-now { border: 2px solid var(--primary); background: #f0fdff; }
+        .time-badge { background: rgba(42, 183, 202, 0.1); color: var(--primary); padding: 5px 8px; border-radius: 6px; font-weight: bold; font-size: 14px; min-width: 65px; text-align: center; }
 
-        .schedule-item.active-now {
-            background: #E0F7FA; border: 2px solid var(--primary);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(42, 183, 202, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(42, 183, 202, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(42, 183, 202, 0); }
-        }
-        .schedule-item.active-now::after {
-            content: "進行中"; position: absolute; top: 0; right: 0;
-            background: var(--accent); color: white; font-size: 10px;
-            padding: 3px 8px; border-bottom-left-radius: 8px;
-        }
-
-        .time-badge {
-            background: rgba(42, 183, 202, 0.1); color: var(--primary);
-            padding: 5px 8px; border-radius: 6px; font-weight: bold; font-size: 14px;
-            min-width: 60px; text-align: center;
-        }
-
-        /* --- 實驗表格樣式 (新增) --- */
+        /* 實驗與討論區 */
         .lab-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .lab-field { display: flex; flex-direction: column; }
         .lab-field label { font-size: 12px; color: #666; margin-bottom: 5px; font-weight: bold; }
-        .lab-field input, .lab-field textarea { 
-            padding: 10px; border: 2px solid #eee; border-radius: 8px; font-size: 16px; text-align: center;
-            background: #FAFAFA; width: 100%;
-        }
+        .lab-field input, .lab-field textarea { padding: 10px; border: 2px solid #eee; border-radius: 8px; font-size: 16px; text-align: center; background: #FAFAFA; width: 100%; }
         .lab-field textarea { text-align: left; resize: none; }
-        .lab-field input:focus, .lab-field textarea:focus { border-color: var(--primary); background: white; }
-        .lab-unit { font-size: 10px; color: #aaa; text-align: right; margin-top: 2px; }
 
-        /* --- 討論區樣式 (新增) --- */
-        .topic-item { 
-            border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 12px; 
-            cursor: pointer; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-            transition: 0.2s; position: relative;
-        }
-        .topic-item:active { background-color: #f0f8ff; transform: scale(0.98); }
-        
-        .topic-meta {
-            font-size: 12px; color: #888; margin-top: 8px; 
-            display: flex; justify-content: space-between;
-        }
-
-        .new-topic-box { 
-            background: white; padding: 15px; border-radius: 16px; margin-bottom: 20px; 
-            border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .new-topic-box input, .new-topic-box textarea {
-            width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-bottom: 10px;
-            font-size: 14px;
-        }
-        
-        #discussion-section h2 { color: var(--primary); margin-top: 0; }
-        #discussion-section p { line-height: 1.6; color: #555; }
-
-        #comments-list { margin-bottom: 80px; padding-bottom: 20px;} 
-        .comment-item {
-            background: #f9f9f9; padding: 12px 15px; border-radius: 12px; margin-bottom: 10px;
-            border-left: 4px solid var(--secondary);
-        }
-
-        .comment-input-area {
-            position: fixed; bottom: 60px; left: 0; width: 100%;
-            background: white; padding: 10px; display: flex; gap: 10px; align-items: center;
-            border-top: 1px solid #ddd; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            z-index: 900;
-        }
-        .comment-user-badge {
-            background: var(--primary); color: white; padding: 5px 10px; 
-            border-radius: 15px; font-size: 12px; white-space: nowrap;
-        }
+        .topic-item { border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; background: white; }
+        .comment-item { background: #f9f9f9; padding: 12px 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--secondary); }
+        .comment-input-area { position: fixed; bottom: 60px; left: 0; width: 100%; background: white; padding: 10px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #ddd; z-index: 900; }
         .comment-input-area input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
-        
-        .back-btn { background: none; border: none; font-size: 16px; color: #666; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
 
-        /* --- 底部導航 --- */
-        .nav-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: white;
-            display: flex; justify-content: space-around; padding: 10px 0;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 1000;
-        }
-        .nav-item { text-align: center; font-size: 10px; color: #bbb; width: 20%; cursor: pointer; }
+        /* 底部導航 */
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 1000; }
+        .nav-item { text-align: center; font-size: 10px; color: #bbb; width: 20%; cursor: pointer; transition: 0.2s; }
         .nav-item.active { color: var(--primary); transform: translateY(-3px); }
         .nav-icon { font-size: 20px; display: block; margin-bottom: 4px; }
 
-        /* 頁面切換 */
+        /* 頁面切換動畫 */
         .page { display: none; opacity: 0; animation: fadeIn 0.3s forwards; }
         .page.active { display: block; }
         @keyframes fadeIn { to { opacity: 1; } }
@@ -180,21 +107,25 @@
     <div id="login-overlay">
         <div class="login-box">
             <div style="font-size: 40px; margin-bottom: 10px; color: var(--primary);"><i class="fas fa-water"></i></div>
-            <h2 style="color: var(--primary);">2026 台大生工營</h2>
-            <p style="color: #888; font-size: 12px; margin-bottom: 20px;">請輸入報名資料登入</p>
-            <input type="text" id="loginName" class="login-input" placeholder="姓名 (王小明)">
-            <input type="password" id="loginID" class="login-input" placeholder="身分證字號 (A123...)">
-            <button class="btn" onclick="handleLogin()">開始旅程</button>
-            <p id="loginMsg" style="color: red; font-size: 12px; margin-top: 10px;"></p>
+            <h2 style="color: var(--primary); margin-top: 0;">2026 台大生工營</h2>
+            <p style="color: #888; font-size: 14px; margin-bottom: 20px;">請輸入姓名與學員編號</p>
+            <input type="text" id="loginName" class="login-input" placeholder="學員姓名 (例: 王小明)">
+            <input type="text" id="loginID" class="login-input" placeholder="學員編號 (例: 101)">
+            <button class="btn" onclick="handleLogin()">進入營隊系統</button>
         </div>
     </div>
 
-    <div id="app-container" style="display: none;">
+    <div id="loading-mask">
+        <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: var(--primary); margin-bottom: 15px;"></i>
+        <p id="loading-text" style="color:#555;">正在同步雲端資料...</p>
+    </div>
 
+    <div id="app-container" style="display: none;">
+        
         <div id="home" class="page active container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h2 style="margin: 0;">Hi, <span id="user-name">學員</span> 👋</h2>
-                <div onclick="toggleDevMode()" style="background:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                <div onclick="toggleDevMode()" style="background:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.1); cursor:pointer;">
                     <i class="fas fa-clock" style="color:var(--primary);"></i>
                 </div>
             </div>
@@ -203,14 +134,11 @@
                 <div style="background: rgba(255,255,255,0.2); display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-bottom: 10px;">
                     <i class="fas fa-bullhorn"></i> 現在狀態
                 </div>
-                <h3 id="home-status-title" style="margin: 0 0 5px 0; font-size: 24px;">目前無活動</h3>
+                <h3 id="home-status-title" style="margin: 0 0 5px 0; font-size: 24px;">載入中...</h3>
                 <p id="home-status-time" style="margin: 0; opacity: 0.9;">--:--</p>
             </div>
 
             <div class="card">
-                <h3 style="font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">
-                    <i class="fas fa-id-card-alt" style="color: var(--accent);"></i> 我的資訊
-                </h3>
                 <div style="display: flex; gap: 15px;">
                     <div style="flex: 1; text-align: center; background: #f9f9f9; padding: 10px; border-radius: 10px;">
                         <div style="font-size: 12px; color: #888;">小隊</div>
@@ -223,10 +151,8 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h3><i class="fas fa-info-circle"></i> 營隊公告</h3>
-                <p>歡迎來到台大生工營！討論區功能已上線，請多加利用。</p>
-            </div>
+            <h3 style="margin-bottom: 10px; font-size: 18px;">📢 營隊公告</h3>
+            <div id="announcement-container"></div>
         </div>
 
         <div id="schedule" class="page container">
@@ -235,66 +161,42 @@
             <div id="schedule-list"></div>
         </div>
 
-        <div id="photos" class="page container">
-            <h2>📷 相簿</h2>
-            <div class="card" style="text-align: center; padding: 40px;">
-                <i class="fas fa-camera" style="font-size: 40px; color: #ddd; margin-bottom: 10px;"></i>
-                <p style="color: #888;">相簿功能即將上線</p>
-            </div>
-        </div>
-
         <div id="activity" class="page container">
             <h2>🏆 戰況排行榜</h2>
             <div class="card">
-                <p style="font-size: 12px; color: #888; text-align: center; margin-bottom: 15px;">數據即時更新</p>
-                <div id="scoreboard"></div>
+                <p style="font-size: 12px; color: #888; text-align: center; margin-bottom: 15px;">數據來自雲端即時更新</p>
+                <div id="scoreboard">載入中...</div>
             </div>
-
+            
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="card" style="text-align: center; padding: 15px; margin-bottom: 0; cursor: pointer;" onclick="openSubPage('experiment-page')">
+                <div class="card" style="text-align: center; cursor: pointer; margin-bottom:0;" onclick="openSubPage('experiment-page')">
                     <i class="fas fa-flask" style="font-size: 30px; color: var(--primary); margin-bottom: 10px;"></i>
-                    <h3 style="font-size: 14px;">實驗紀錄</h3>
-                    <span style="font-size: 10px; color: #888;">填寫數據</span>
+                    <h3 style="font-size: 14px; margin:0;">實驗紀錄</h3>
+                    <span style="font-size: 10px; color: #888;">上傳水質數據</span>
                 </div>
-                <div class="card" style="text-align: center; padding: 15px; margin-bottom: 0; cursor: pointer;" onclick="openSubPage('notes-page')">
-                    <i class="fas fa-sticky-note" style="font-size: 30px; color: var(--accent); margin-bottom: 10px;"></i>
-                    <h3 style="font-size: 14px;">成發筆記</h3>
+                <div class="card" style="text-align: center; cursor: pointer; margin-bottom:0;" onclick="openSubPage('notes-page')">
+                    <i class="fas fa-comments" style="font-size: 30px; color: var(--accent); margin-bottom: 10px;"></i>
+                    <h3 style="font-size: 14px; margin:0;">成發筆記</h3>
                     <span style="font-size: 10px; color: #888;">小組討論區</span>
                 </div>
             </div>
         </div>
 
         <div id="experiment-page" class="page container">
-            <button class="back-btn" onclick="switchPage('activity', document.querySelector('.nav-item:nth-child(4)'))">
-                <i class="fas fa-chevron-left"></i> 返回列表
+            <button class="back-btn" onclick="switchPage('activity', document.querySelector('.nav-item:nth-child(3)'))">
+                <i class="fas fa-chevron-left"></i> 返回活動
             </button>
-            <h2 style="color: var(--primary);">⚗️ 水質檢測紀錄表</h2>
+            <h2 style="color: var(--primary);">⚗️ 水質檢測紀錄</h2>
             <div class="card">
                 <p style="font-size: 12px; color: #888; text-align: center; margin-bottom: 15px;">
                     第 <b id="exp-group-num">?</b> 小組數據 (同步中)
                 </p>
                 
                 <div class="lab-form">
-                    <div class="lab-field">
-                        <label>pH 酸鹼值</label>
-                        <input type="number" id="lab-ph" step="0.1" placeholder="7.0">
-                        <div class="lab-unit">無單位</div>
-                    </div>
-                    <div class="lab-field">
-                        <label>水溫 Temp.</label>
-                        <input type="number" id="lab-temp" step="0.1" placeholder="25.0">
-                        <div class="lab-unit">°C</div>
-                    </div>
-                    <div class="lab-field">
-                        <label>導電度 EC</label>
-                        <input type="number" id="lab-ec" placeholder="200">
-                        <div class="lab-unit">μS/cm</div>
-                    </div>
-                    <div class="lab-field">
-                        <label>濁度 Turbidity</label>
-                        <input type="number" id="lab-tb" placeholder="5.0">
-                        <div class="lab-unit">NTU</div>
-                    </div>
+                    <div class="lab-field"><label>pH 酸鹼值</label><input type="number" id="lab-ph" step="0.1" placeholder="7.0"></div>
+                    <div class="lab-field"><label>水溫 Temp.</label><input type="number" id="lab-temp" step="0.1" placeholder="25.0"></div>
+                    <div class="lab-field"><label>導電度 EC</label><input type="number" id="lab-ec" placeholder="200"></div>
+                    <div class="lab-field"><label>濁度 Turbidity</label><input type="number" id="lab-tb" placeholder="5.0"></div>
                 </div>
 
                 <div class="lab-field" style="margin-top: 15px;">
@@ -311,23 +213,20 @@
         </div>
 
         <div id="notes-page" class="page container">
-            
             <div id="topic-list-section">
-                <button class="back-btn" onclick="switchPage('activity', document.querySelector('.nav-item:nth-child(4)'))">
+                <button class="back-btn" onclick="switchPage('activity', document.querySelector('.nav-item:nth-child(3)'))">
                     <i class="fas fa-chevron-left"></i> 返回選單
                 </button>
 
                 <h2 id="discussion-header">📌 成發筆記討論區</h2>
                 
-                <div class="new-topic-box">
+                <div class="card" style="margin-bottom: 20px;">
                     <h4 style="margin-top:0; margin-bottom:10px;">＋ 發起新討論</h4>
                     <p style="font-size:12px; color:#666; margin-bottom:5px;">發起人：<span id="new-topic-author" style="font-weight:bold; color:var(--primary);"></span></p>
-                    <input type="text" id="new-topic-title" placeholder="標題 (例: 實驗結果怪怪的)">
-                    <textarea id="new-topic-content" rows="3" placeholder="請詳細描述問題..."></textarea>
-                    <button class="btn" id="btn-create-topic" style="margin-top:5px; font-size:14px;">發佈主題</button>
+                    <input type="text" id="new-topic-title" placeholder="標題 (例: 實驗結果怪怪的)" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+                    <textarea id="new-topic-content" rows="3" placeholder="請詳細描述問題..." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+                    <button class="btn" id="btn-create-topic" style="margin-top:10px; font-size:14px;">發佈主題</button>
                 </div>
-
-                <hr style="border:0; border-top:1px solid #ddd; margin: 20px 0;">
 
                 <div id="topics-container">
                     <p style="text-align:center; color:#999;">正在載入小組討論串...</p>
@@ -344,16 +243,14 @@
                     <p id="view-topic-content" style="white-space: pre-wrap; color:#333;"></p>
                     <div style="border-top:1px solid #eee; margin-top:10px; padding-top:10px; color:#888; font-size:12px;">
                         發起人：<span id="view-topic-author" style="font-weight:bold;"></span>
-                        <span style="float:right;" id="view-topic-time"></span>
                     </div>
                 </div>
 
                 <h3>💬 小組留言板</h3>
-                <div id="comments-list">
-                    </div>
+                <div id="comments-list" style="padding-bottom: 60px;"></div>
 
                 <div class="comment-input-area">
-                    <span class="comment-user-badge" id="comment-user-badge"></span>
+                    <span id="comment-user-badge" style="background:var(--primary); color:white; padding:5px 10px; border-radius:15px; font-size:12px; white-space:nowrap;">我</span>
                     <input type="text" id="my-comment" placeholder="輸入留言...">
                     <button id="btn-send-comment" style="background:var(--primary); color:white; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
                 </div>
@@ -361,18 +258,14 @@
         </div>
 
         <div id="info" class="page container">
-            <h2>ℹ️ 資訊</h2>
-            <div class="card">
-                <h3>📞 緊急聯絡</h3>
-                <button class="btn" onclick="window.location.href='tel:0912345678'"><i class="fas fa-phone"></i> 撥給總召</button>
-            </div>
+            <h2>ℹ️ 實用資訊</h2>
+            <div id="info-list"></div>
         </div>
     </div>
 
     <div class="nav-bar">
         <div class="nav-item active" onclick="switchPage('home', this)"><i class="fas fa-home nav-icon"></i>首頁</div>
         <div class="nav-item" onclick="switchPage('schedule', this)"><i class="fas fa-calendar-alt nav-icon"></i>行程</div>
-        <div class="nav-item" onclick="switchPage('photos', this)"><i class="fas fa-images nav-icon"></i>相簿</div>
         <div class="nav-item" onclick="switchPage('activity', this)"><i class="fas fa-trophy nav-icon"></i>活動</div>
         <div class="nav-item" onclick="switchPage('info', this)"><i class="fas fa-info-circle nav-icon"></i>資訊</div>
     </div>
@@ -384,6 +277,7 @@
             collection, addDoc, query, orderBy, serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // 1. Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyCIrDF_HbcjgvafKfGRjF7VhB0pLpJO6W8",
             authDomain: "bse-camp.firebaseapp.com",
@@ -392,251 +286,250 @@
             messagingSenderId: "287416151522",
             appId: "1:287416151522:web:435f09982f54943ba75dbb"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // 2. Google Sheets API (你的新網址)
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5gNCBcAO5ktMfLh1wU4ajjJJCDW8V1hx8ykzr7o6VJpqCLa6OFhiZxAw9JmpNsH4q/exec";
+
         // 全域變數
-        let currentUser = null;
-        let currentGroup = null;
-        let currentTopicId = null; 
-        let unsubscribeTopics = null;
-        let unsubscribeComments = null;
-
-        // --- 資料庫 (學員名單 - 測試用) ---
-        const campersDB = [
-            { name: "王小明", id: "A123456789", group: "1", room: "501" },
-            { name: "陳小美", id: "B223456789", group: "5", room: "502" },
-            { name: "測試員", id: "123", group: "8", room: "VIP" }
-        ];
-
-        // --- 行程資料庫 (完整) ---
-        const scheduleDB = [
-            { day: "1/26", date: "2026-01-26", time: "12:30", title: "破冰", loc: "舊體育館" },
-            { day: "1/26", date: "2026-01-26", time: "13:00", title: "開營/成發介紹", loc: "博雅 101" },
-            { day: "1/26", date: "2026-01-26", time: "14:00", title: "系所介紹", loc: "生工系館" },
-            { day: "1/26", date: "2026-01-26", time: "15:00", title: "大破冰", loc: "舊體育館" },
-            { day: "1/26", date: "2026-01-26", time: "15:30", title: "大地遊戲", loc: "校園各處" },
-            { day: "1/26", date: "2026-01-26", time: "17:30", title: "吃晚餐", loc: "餐廳" },
-            { day: "1/26", date: "2026-01-26", time: "19:00", title: "密室逃脫", loc: "共同教室" },
-            { day: "1/26", date: "2026-01-26", time: "21:30", title: "整隊/搭捷運", loc: "公館站" },
-            { day: "1/26", date: "2026-01-26", time: "22:00", title: "到寓見青旅", loc: "青旅" },
-            { day: "1/27", date: "2026-01-27", time: "06:30", title: "起床", loc: "青旅" },
-            { day: "1/27", date: "2026-01-27", time: "07:30", title: "吃早餐", loc: "青旅" },
-            { day: "1/27", date: "2026-01-27", time: "08:30", title: "搭捷運", loc: "捷運站" },
-            { day: "1/27", date: "2026-01-27", time: "09:00", title: "授課+實驗", loc: "生工系館" },
-            { day: "1/27", date: "2026-01-27", time: "12:00", title: "吃午餐", loc: "校園" },
-            { day: "1/27", date: "2026-01-27", time: "13:30", title: "工作坊", loc: "博雅" },
-            { day: "1/27", date: "2026-01-27", time: "17:30", title: "晚餐", loc: "餐廳" },
-            { day: "1/27", date: "2026-01-27", time: "18:30", title: "綜藝大聲公", loc: "晚會場地" },
-            { day: "1/27", date: "2026-01-27", time: "21:30", title: "整隊/搭捷運", loc: "公館站" },
-            { day: "1/27", date: "2026-01-27", time: "22:00", title: "到寓見青旅", loc: "青旅" },
-            { day: "1/28", date: "2026-01-28", time: "06:30", title: "起床", loc: "青旅" },
-            { day: "1/28", date: "2026-01-28", time: "07:30", title: "吃早餐", loc: "青旅" },
-            { day: "1/28", date: "2026-01-28", time: "08:30", title: "搭捷運", loc: "捷運站" },
-            { day: "1/28", date: "2026-01-28", time: "09:00", title: "授課+實驗", loc: "生工系館" },
-            { day: "1/28", date: "2026-01-28", time: "12:00", title: "吃午餐", loc: "校園" },
-            { day: "1/28", date: "2026-01-28", time: "13:00", title: "搭捷運", loc: "前往參訪地" },
-            { day: "1/28", date: "2026-01-28", time: "14:00", title: "參訪", loc: "校外" },
-            { day: "1/28", date: "2026-01-28", time: "17:00", title: "搭捷運", loc: "回公館" },
-            { day: "1/28", date: "2026-01-28", time: "17:30", title: "吃晚餐", loc: "餐廳" },
-            { day: "1/28", date: "2026-01-28", time: "18:30", title: "綜藝大聲公", loc: "晚會場地" },
-            { day: "1/28", date: "2026-01-28", time: "21:30", title: "整隊/搭捷運", loc: "公館站" },
-            { day: "1/28", date: "2026-01-28", time: "22:00", title: "到寓見青旅", loc: "青旅" },
-            { day: "1/29", date: "2026-01-29", time: "06:30", title: "起床", loc: "青旅" },
-            { day: "1/29", date: "2026-01-29", time: "07:30", title: "吃早餐", loc: "青旅" },
-            { day: "1/29", date: "2026-01-29", time: "08:30", title: "搭捷運", loc: "捷運站" },
-            { day: "1/29", date: "2026-01-29", time: "09:00", title: "參訪", loc: "校外" },
-            { day: "1/29", date: "2026-01-29", time: "12:00", title: "搭捷運", loc: "回公館" },
-            { day: "1/29", date: "2026-01-29", time: "12:30", title: "吃午餐", loc: "校園" },
-            { day: "1/29", date: "2026-01-29", time: "13:30", title: "RPG", loc: "校園各處" },
-            { day: "1/29", date: "2026-01-29", time: "17:30", title: "晚餐", loc: "餐廳" },
-            { day: "1/29", date: "2026-01-29", time: "18:30", title: "晚會", loc: "大禮堂" },
-            { day: "1/29", date: "2026-01-29", time: "21:30", title: "整隊/搭捷運", loc: "公館站" },
-            { day: "1/29", date: "2026-01-29", time: "22:00", title: "到寓見青旅", loc: "青旅" },
-            { day: "1/30", date: "2026-01-30", time: "06:30", title: "起床", loc: "青旅" },
-            { day: "1/30", date: "2026-01-30", time: "07:30", title: "吃早餐", loc: "青旅" },
-            { day: "1/30", date: "2026-01-30", time: "08:30", title: "搭捷運", loc: "捷運站" },
-            { day: "1/30", date: "2026-01-30", time: "09:00", title: "成發", loc: "博雅 101" },
-            { day: "1/30", date: "2026-01-30", time: "12:00", title: "After Party", loc: "秘密基地" }
-        ];
-
-        // --- 戰況資料 (8 組) ---
-        const teamScores = [
-            { id: 1, score: 850 },
-            { id: 2, score: 720 },
-            { id: 3, score: 680 },
-            { id: 4, score: 900 },
-            { id: 5, score: 500 },
-            { id: 6, score: 600 },
-            { id: 7, score: 750 },
-            { id: 8, score: 400 }
-        ];
-
+        let currentUser = { name: "學員", group: "1", room: "無" };
+        let cachedData = JSON.parse(localStorage.getItem('bse_camp_data')) || null;
         let mockTime = null;
-        let currentTabDay = "1/26";
+        let currentTabDay = "";
+        let currentTopicId = null;
+        let unsubscribeComments = null;
+        let unsubscribeTopics = null;
+
+        // 學員名單 (假資料，實際可改為從 Sheet 讀取)
+        const campersDB = [
+            { name: "王小明", id: "101", group: "1", room: "501" },
+            { name: "陳小美", id: "102", group: "1", room: "502" },
+            { name: "測試員", id: "000", group: "2", room: "VIP" }
+        ];
 
         // ==========================================
-        //  功能 A: 登入 (合併版)
+        //  A. 登入與資料同步
         // ==========================================
         window.handleLogin = async function() {
-            try {
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('app-container').style.display = 'block';
-                
-                const inputName = document.getElementById('loginName').value || "學員";
-                const inputID = document.getElementById('loginID').value;
-                const user = campersDB.find(c => c.name === inputName && c.id === inputID) || { name: inputName, group: "1", room: "?" };
-                
-                currentUser = user;
-                currentGroup = user.group;
+            const name = document.getElementById('loginName').value;
+            const id = document.getElementById('loginID').value;
+            
+            // 簡單驗證
+            const user = campersDB.find(c => c.name === name || c.id === id) || { name: name || "學員", group: "1", room: "?" };
+            currentUser = user;
 
-                // 更新畫面資訊
-                document.getElementById('user-name').innerText = user.name;
-                document.getElementById('info-group').innerText = user.group;
-                document.getElementById('info-room').innerText = user.room;
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('loading-mask').style.display = 'flex';
 
-                // 實驗 & 討論區設定
-                document.getElementById('new-topic-author').innerText = currentUser.name;
-                document.getElementById('comment-user-badge').innerText = currentUser.name;
-                document.getElementById('discussion-header').innerText = `📌 第 ${currentGroup} 小組成發筆記`;
-                
-                // 啟動所有監聽
-                initSchedule();
-                renderScoreboard();
-                initGroupSync(currentGroup);
-                initDiscussion(currentGroup); 
-            } catch(e) {
-                alert("登入錯誤: " + e.message);
-            }
+            // 嘗試抓取資料
+            await fetchSheetData();
+
+            // 更新 UI
+            document.getElementById('loading-mask').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            
+            updateUserInfo();
+            initGroupSync(currentUser.group);
+            initDiscussion(currentUser.group);
+            renderAll();
         };
 
-        // ==========================================
-        //  功能 B: 行程表 & 戰況
-        // ==========================================
-        function initSchedule() {
-            const today = mockTime ? new Date(mockTime) : new Date();
-            const dateString = `${today.getMonth() + 1}/${today.getDate()}`;
-            const validDays = ["1/26", "1/27", "1/28", "1/29", "1/30"];
-            currentTabDay = validDays.includes(dateString) ? dateString : "1/26";
-
-            renderTabs();
-            renderList();
-            updateLiveStatus();
-            setInterval(updateLiveStatus, 60000);
+        function updateUserInfo() {
+            document.getElementById('user-name').innerText = currentUser.name;
+            document.getElementById('info-group').innerText = currentUser.group;
+            document.getElementById('info-room').innerText = currentUser.room;
+            document.getElementById('new-topic-author').innerText = currentUser.name;
+            document.getElementById('comment-user-badge').innerText = currentUser.name;
+            document.getElementById('discussion-header').innerText = `📌 第 ${currentUser.group} 小組成發筆記`;
         }
 
-        function renderTabs() {
-            const tabs = ["1/26", "1/27", "1/28", "1/29", "1/30"];
-            const container = document.getElementById('day-tabs');
-            container.innerHTML = tabs.map(day => `
-                <div class="day-tab ${day === currentTabDay ? 'active' : ''}" 
-                     onclick="switchTab('${day}')">
-                     ${day}
-                </div>
-            `).join('');
-        }
+        async function fetchSheetData() {
+            try {
+                // 設定 8 秒超時
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-        window.switchTab = function(day) {
-            currentTabDay = day;
-            renderTabs();
-            renderList();
-        }
-
-        function renderList() {
-            const list = document.getElementById('schedule-list');
-            const dayEvents = scheduleDB.filter(e => e.day === currentTabDay);
-            const now = mockTime ? new Date(mockTime) : new Date();
-            const nowTimeVal = now.getHours() * 60 + now.getMinutes();
-
-            list.innerHTML = dayEvents.map(item => {
-                let statusClass = "";
-                const itemTimeParts = item.time.split(':');
-                const itemTimeVal = parseInt(itemTimeParts[0]) * 60 + parseInt(itemTimeParts[1]);
-                const isToday = (now.getMonth() + 1 + "/" + now.getDate()) === item.day;
-
-                if (item.day < (now.getMonth()+1 + "/" + now.getDate())) {
-                    statusClass = "past"; 
-                } else if (isToday) {
-                    if (nowTimeVal >= itemTimeVal && nowTimeVal < itemTimeVal + 60) {
-                        statusClass = "active-now"; 
-                    } else if (nowTimeVal > itemTimeVal) {
-                        statusClass = "past";
-                    }
+                const response = await fetch(GOOGLE_SCRIPT_URL, { signal: controller.signal });
+                const data = await response.json();
+                
+                cachedData = data;
+                localStorage.setItem('bse_camp_data', JSON.stringify(data));
+                console.log("雲端資料同步成功");
+            } catch (err) {
+                console.warn("連線失敗，使用緩存:", err);
+                if (!cachedData) {
+                    alert("⚠️ 無法連線且無舊資料，請檢查網路！");
+                } else {
+                    alert("⚠️ 網路不穩，目前使用離線模式");
                 }
+            }
+        }
 
+        // 渲染所有從 Sheet 來的資料
+        function renderAll() {
+            if (!cachedData) return;
+            renderAnnouncements();
+            renderScoreboard();
+            renderInfo();
+            initSchedule();
+        }
+
+        // ==========================================
+        //  B. 各區塊渲染邏輯
+        // ==========================================
+        
+        // 1. 公告 (支援 Urgent)
+        function renderAnnouncements() {
+            const container = document.getElementById('announcement-container');
+            const data = cachedData.announcements || [];
+            const activeList = data.filter(a => String(a.active).toUpperCase() === "TRUE");
+
+            if (activeList.length === 0) {
+                container.innerHTML = `<div class="card"><p style="color:#888;">目前沒有公告</p></div>`;
+                return;
+            }
+
+            container.innerHTML = activeList.map(a => {
+                const isUrgent = String(a.urgent || "").toUpperCase() === "TRUE";
                 return `
-                    <div class="schedule-item ${statusClass}">
-                        <div class="time-badge">${item.time}</div>
-                        <div style="flex:1;">
-                            <div style="font-weight:bold; font-size:16px;">${item.title}</div>
-                            <div style="font-size:13px; color:#888; margin-top:4px;">
-                                <i class="fas fa-map-marker-alt"></i> ${item.loc}
-                            </div>
-                        </div>
-                    </div>
-                `;
+                <div class="card ${isUrgent ? 'urgent' : ''}">
+                    <h3 style="margin:0 0 8px 0; color:${isUrgent ? 'var(--urgent)' : 'var(--text)'};">
+                        ${isUrgent ? '<i class="fas fa-exclamation-circle"></i> ' : '<i class="fas fa-info-circle"></i> '}${a.title}
+                    </h3>
+                    <p style="margin:0; font-size:15px; line-height:1.5;">${a.content}</p>
+                    <small style="color:#aaa; display:block; margin-top:10px; text-align:right;">${a.date}</small>
+                </div>`;
             }).join('');
         }
 
-        function renderScoreboard() {
-            const board = document.getElementById('scoreboard');
-            const maxScore = Math.max(...teamScores.map(t => t.score), 100); 
-            board.innerHTML = teamScores.map(team => `
-                <div class="score-row" style="display:flex; align-items:center; margin-bottom:12px;">
-                    <span style="width:50px; font-weight:bold; font-size:14px;">第 ${team.id} 小</span>
-                    <div style="flex:1; background:#eee; height:12px; border-radius:6px; margin:0 10px; overflow:hidden;">
-                        <div style="width:${(team.score / maxScore) * 100}%; background:var(--secondary); height:100%; border-radius:6px; transition:width 1s;"></div>
+        // 2. 行程表
+        function initSchedule() {
+            const data = cachedData.schedule || [];
+            if(data.length === 0) return;
+
+            const days = [...new Set(data.map(i => i.day))];
+            
+            // 自動選取當天
+            const now = mockTime || new Date();
+            const dateStr = (now.getMonth()+1) + "/" + now.getDate();
+            if (!currentTabDay) {
+                currentTabDay = days.includes(dateStr) ? dateStr : days[0];
+            }
+
+            // 渲染 Tabs
+            const tabs = document.getElementById('day-tabs');
+            tabs.innerHTML = days.map(d => `
+                <div class="day-tab ${d === currentTabDay ? 'active' : ''}" onclick="window.setTab('${d}')">
+                    ${d}
+                </div>
+            `).join('');
+            
+            renderScheduleList();
+            updateHomeStatus();
+            
+            // 每分鐘更新一次狀態
+            if(!window.statusInterval) window.statusInterval = setInterval(updateHomeStatus, 60000);
+        }
+
+        window.setTab = function(day) {
+            currentTabDay = day;
+            initSchedule(); // 重繪
+        };
+
+        function renderScheduleList() {
+            const list = document.getElementById('schedule-list');
+            const dayData = (cachedData.schedule || []).filter(i => i.day == currentTabDay);
+            
+            list.innerHTML = dayData.map(item => `
+                <div class="schedule-item">
+                    <div class="time-badge">${item.time}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:bold; font-size:16px;">${item.title}</div>
+                        <div style="font-size:13px; color:#888; margin-top:4px;">
+                            <i class="fas fa-map-marker-alt"></i> ${item.loc}
+                        </div>
                     </div>
-                    <span style="width:40px; text-align:right; font-weight:bold; color:var(--secondary);">${team.score}</span>
                 </div>
             `).join('');
         }
 
-        function updateLiveStatus() {
-            const now = mockTime ? new Date(mockTime) : new Date();
+        function updateHomeStatus() {
+            const now = mockTime || new Date();
             const timeVal = now.getHours() * 60 + now.getMinutes();
             const dateStr = (now.getMonth()+1) + "/" + now.getDate();
-            const todayEvents = scheduleDB.filter(e => e.day === dateStr);
-            const currentEvent = todayEvents.find(e => {
-                const t = parseInt(e.time.split(':')[0])*60 + parseInt(e.time.split(':')[1]);
+            
+            const todayEvents = (cachedData.schedule || []).filter(e => e.day == dateStr);
+            const current = todayEvents.find(e => {
+                const [h, m] = String(e.time).split(':');
+                const t = parseInt(h)*60 + parseInt(m);
+                // 假設每個活動 1 小時，或直到下個活動開始
                 return timeVal >= t && timeVal < t + 60;
             });
 
-            if (currentEvent) {
-                document.getElementById('home-status-title').innerText = currentEvent.title;
-                document.getElementById('home-status-time').innerText = `正在進行 (${currentEvent.loc})`;
+            if (current) {
+                document.getElementById('home-status-title').innerText = current.title;
+                document.getElementById('home-status-time').innerText = `正在進行 (${current.loc})`;
             } else {
                 document.getElementById('home-status-title').innerText = "目前無活動";
                 document.getElementById('home-status-time').innerText = "休息中";
             }
-            renderList();
         }
 
-        window.toggleDevMode = function() {
-            const input = prompt("【時光機】輸入模擬時間 (格式: 1/26 14:00)", "1/26 14:00");
-            if(input) {
-                const [d, t] = input.split(' ');
-                mockTime = new Date(`2026/${d} ${t}:00`);
-                initSchedule();
-                renderScoreboard();
-                alert(`時間已切換至 ${input}`);
-            }
+        // 3. 戰況板
+        function renderScoreboard() {
+            const data = cachedData.scores || [];
+            const container = document.getElementById('scoreboard');
+            if (data.length === 0) { container.innerHTML = "無數據"; return; }
+
+            const max = Math.max(...data.map(s => s.score), 100);
+
+            container.innerHTML = data.map(s => `
+                <div style="display:flex; align-items:center; margin-bottom:12px;">
+                    <span style="width:50px; font-weight:bold;">第 ${s.id} 小</span>
+                    <div style="flex:1; height:12px; background:#eee; border-radius:6px; margin:0 10px; overflow:hidden;">
+                        <div style="width:${(s.score/max)*100}%; background:var(--secondary); height:100%;"></div>
+                    </div>
+                    <span style="width:40px; text-align:right; font-weight:bold;">${s.score}</span>
+                </div>
+            `).join('');
+        }
+
+        // 4. 資訊頁 (支援 Type)
+        function renderInfo() {
+            const container = document.getElementById('info-list');
+            const data = cachedData.info || [];
+            
+            container.innerHTML = data.map(i => {
+                let btn = "";
+                if (i.type === "tel" && i.value) {
+                    btn = `<button class="btn" onclick="window.location.href='tel:${i.value}'"><i class="fas fa-phone"></i> 撥打電話</button>`;
+                } else if (i.type === "link" && i.value) {
+                    btn = `<button class="btn btn-secondary" onclick="window.open('${i.value}')"><i class="fas fa-external-link-alt"></i> 開啟連結</button>`;
+                }
+                
+                return `
+                <div class="card">
+                    <h3 style="margin:0 0 5px 0;">${i.title}</h3>
+                    <p style="color:#666; margin:0 0 15px 0;">${i.content}</p>
+                    ${btn}
+                </div>`;
+            }).join('');
         }
 
         // ==========================================
-        //  功能 C: 實驗同步 & 上傳
+        //  C. Firebase 功能 (實驗與討論)
         // ==========================================
+        
+        // C1. 實驗數據同步
         function initGroupSync(groupId) {
             document.getElementById('exp-group-num').innerText = groupId;
-            const docRef = doc(db, "groups", "group_" + groupId);
-
-            onSnapshot(docRef, (docSnap) => {
+            onSnapshot(doc(db, "groups", "group_" + groupId), (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     if(data.labData) {
-                        const ids = ['lab-ph', 'lab-temp', 'lab-ec', 'lab-tb', 'lab-note'];
-                        ids.forEach(id => {
+                        ['lab-ph', 'lab-temp', 'lab-ec', 'lab-tb', 'lab-note'].forEach(id => {
+                            // 若使用者正在輸入，不要覆蓋
                             if(document.activeElement.id !== id) {
                                 document.getElementById(id).value = data.labData[id] || "";
                             }
@@ -663,52 +556,45 @@
             };
 
             try {
-                await setDoc(doc(db, "groups", "group_" + currentGroup), {
+                await setDoc(doc(db, "groups", "group_" + currentUser.group), {
                     labData: labData,
                     labLastEditor: currentUser.name,
                     labTime: new Date().toISOString()
                 }, { merge: true });
-                
                 btn.innerHTML = '<i class="fas fa-check"></i> 上傳成功';
                 setTimeout(() => btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> 上傳數據', 1500);
             } catch(e) {
                 console.error(e);
-                alert("上傳失敗");
+                alert("上傳失敗，請檢查網路");
                 btn.innerHTML = '<i class="fas fa-redo"></i> 重試';
             }
         };
 
-        // ==========================================
-        //  功能 D: 討論區邏輯 (分組)
-        // ==========================================
+        // C2. 討論區
         function initDiscussion(groupId) {
             if(unsubscribeTopics) unsubscribeTopics();
-            const topicsRef = collection(db, "groups", "group_" + groupId, "topics");
-            const qTopics = query(topicsRef, orderBy("createdAt", "desc"));
-
-            unsubscribeTopics = onSnapshot(qTopics, (snapshot) => {
+            const ref = collection(db, "groups", "group_" + groupId, "topics");
+            
+            unsubscribeTopics = onSnapshot(query(ref, orderBy("createdAt", "desc")), (snapshot) => {
                 const container = document.getElementById("topics-container");
-                container.innerHTML = ""; 
-
                 if (snapshot.empty) {
-                    container.innerHTML = "<p style='text-align:center; color:#ccc; padding:20px;'>本小組還沒有討論，由你來發起第一個吧！</p>";
+                    container.innerHTML = "<p style='text-align:center; color:#ccc; padding:20px;'>尚無討論，快來發起第一個！</p>";
                     return;
                 }
-
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
+                
+                container.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const d = doc.data();
                     const div = document.createElement("div");
                     div.className = "topic-item";
-                    
                     div.innerHTML = `
-                        <h3 style="margin:0 0 5px 0; font-size:16px;">${data.title}</h3>
-                        <p style="margin:0; font-size:13px; color:#666;">${data.content.substring(0, 40)}...</p>
-                        <div class="topic-meta">
-                            <span><i class="fas fa-user"></i> ${data.author}</span>
-                            <span>查看詳情 ></span>
+                        <h3 style="margin:0 0 5px 0;">${d.title}</h3>
+                        <p style="color:#666; font-size:13px; margin:0;">${d.content.substring(0,30)}...</p>
+                        <div style="text-align:right; font-size:12px; color:#aaa; margin-top:5px;">
+                            <i class="fas fa-user"></i> ${d.author}
                         </div>
                     `;
-                    div.onclick = () => openDiscussion(doc.id, data);
+                    div.onclick = () => openDiscussion(doc.id, d);
                     container.appendChild(div);
                 });
             });
@@ -718,94 +604,104 @@
             currentTopicId = docId;
             document.getElementById("topic-list-section").style.display = "none";
             document.getElementById("discussion-section").style.display = "block";
+            
             document.getElementById("view-topic-title").innerText = data.title;
             document.getElementById("view-topic-content").innerText = data.content;
             document.getElementById("view-topic-author").innerText = data.author;
-
+            
             loadComments(docId);
         }
 
         function loadComments(topicId) {
-            if (unsubscribeComments) unsubscribeComments();
-            const commentsRef = collection(db, "groups", "group_" + currentGroup, "topics", topicId, "comments");
-            const qComments = query(commentsRef, orderBy("createdAt", "asc"));
-
-            unsubscribeComments = onSnapshot(qComments, (snapshot) => {
+            if(unsubscribeComments) unsubscribeComments();
+            const ref = collection(db, "groups", "group_" + currentUser.group, "topics", topicId, "comments");
+            
+            unsubscribeComments = onSnapshot(query(ref, orderBy("createdAt", "asc")), (snapshot) => {
                 const list = document.getElementById("comments-list");
-                list.innerHTML = ""; 
-
-                snapshot.forEach((doc) => {
+                list.innerHTML = "";
+                
+                snapshot.forEach(doc => {
                     const c = doc.data();
                     const div = document.createElement("div");
                     div.className = "comment-item";
                     div.innerHTML = `
-                        <div style="font-size:12px; color:#888; margin-bottom:4px; font-weight:bold;">${c.user}</div>
-                        <div style="color:#333;">${c.message}</div>
+                        <div style="font-size:12px; color:#888; margin-bottom:4px;">${c.user}</div>
+                        <div>${c.message}</div>
                     `;
                     list.appendChild(div);
                 });
+                // 自動捲動到底部
                 window.scrollTo(0, document.body.scrollHeight);
             });
         }
 
-        // 按鈕事件綁定
+        // 發佈主題按鈕
         document.getElementById("btn-create-topic").onclick = async () => {
-            const title = document.getElementById("new-topic-title").value;
-            const content = document.getElementById("new-topic-content").value;
-            if(!title || !content) return alert("請輸入標題和內容");
-
-            try {
-                await addDoc(collection(db, "groups", "group_" + currentGroup, "topics"), {
-                    title: title, content: content, author: currentUser.name, createdAt: serverTimestamp()
-                });
-                document.getElementById("new-topic-title").value = "";
-                document.getElementById("new-topic-content").value = "";
-            } catch(e) { console.error(e); alert("發佈失敗"); }
+            const t = document.getElementById("new-topic-title").value;
+            const c = document.getElementById("new-topic-content").value;
+            if(!t || !c) return alert("請輸入標題與內容");
+            
+            await addDoc(collection(db, "groups", "group_" + currentUser.group, "topics"), {
+                title: t, content: c, author: currentUser.name, createdAt: serverTimestamp()
+            });
+            document.getElementById("new-topic-title").value = "";
+            document.getElementById("new-topic-content").value = "";
         };
 
+        // 發送留言按鈕
         document.getElementById("btn-send-comment").onclick = async () => {
             const msg = document.getElementById("my-comment").value;
             if(!msg) return;
-            try {
-                await addDoc(collection(db, "groups", "group_" + currentGroup, "topics", currentTopicId, "comments"), {
-                    user: currentUser.name, message: msg, createdAt: serverTimestamp()
-                });
-                document.getElementById("my-comment").value = "";
-            } catch(e) { console.error(e); alert("留言失敗"); }
+            
+            await addDoc(collection(db, "groups", "group_" + currentUser.group, "topics", currentTopicId, "comments"), {
+                user: currentUser.name, message: msg, createdAt: serverTimestamp()
+            });
+            document.getElementById("my-comment").value = "";
         };
 
+        // 回列表按鈕
         document.getElementById("btn-back-to-topics").onclick = () => {
             document.getElementById("discussion-section").style.display = "none";
             document.getElementById("topic-list-section").style.display = "block";
-            currentTopicId = null;
-            if (unsubscribeComments) unsubscribeComments(); 
+            if(unsubscribeComments) unsubscribeComments();
         };
 
         // ==========================================
-        //  功能 E: 頁面導航
+        //  D. 頁面導航與工具
         // ==========================================
-        window.switchPage = function(pageId, navElement) {
+        window.switchPage = function(pageId, navEl) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             
-            if(navElement) {
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                navElement.classList.add('active');
+            if(navEl) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                navEl.classList.add('active');
             }
-            // 離開討論區時重置
+            // 重置子頁面狀態
             if(pageId === 'notes-page') {
                 document.getElementById("discussion-section").style.display = "none";
                 document.getElementById("topic-list-section").style.display = "block";
             }
-        }
+        };
 
         window.openSubPage = function(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            // 讓導航保持在「活動」
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.querySelectorAll('.nav-item')[3].classList.add('active'); // 第四個是活動
-        }
+            // 保持活動頁籤高亮
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[2].classList.add('active');
+        };
+
+        // 時光機 (DevMode)
+        window.toggleDevMode = function() {
+            const input = prompt("【時光機】測試用\n請輸入模擬時間 (格式: 1/26 14:00)", "1/26 14:00");
+            if(input) {
+                const [d, t] = input.split(' ');
+                mockTime = new Date(`2026/${d} ${t}:00`);
+                renderAll(); // 立即刷新界面
+                alert(`時間已切換至 ${input}`);
+            }
+        };
     </script>
 </body>
 </html>
