@@ -34,7 +34,7 @@
             border: 1px solid rgba(0,0,0,0.02); position: relative;
         }
 
-        /* 首頁狀態卡片 (可點擊) */
+        /* 首頁狀態卡片 */
         .home-status-card { cursor: pointer; transition: transform 0.2s; }
         .home-status-card:active { transform: scale(0.98); }
 
@@ -46,6 +46,9 @@
         .btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .btn:active { transform: scale(0.98); }
         .btn-secondary { background: var(--secondary); }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-outline.active { background: var(--primary); color: white; }
+        
         .back-btn { background: none; border: none; font-size: 16px; color: #666; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
 
         /* 登入與 Loading */
@@ -54,34 +57,15 @@
         .login-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #eee; border-radius: 10px; font-size: 16px; outline: none; }
         #loading-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 8000; display: none; justify-content: center; align-items: center; flex-direction: column; }
 
-        /* 📅 行程表 */
+        /* 📅 行程表 & 實驗切換 Tab */
         .day-tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; scrollbar-width: none; }
         .day-tab { background: white; color: #888; padding: 8px 16px; border-radius: 20px; font-size: 14px; white-space: nowrap; border: 1px solid #eee; cursor: pointer; transition: 0.2s; }
         .day-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(42, 183, 202, 0.3); transform: translateY(-2px); }
         
         .schedule-item { display: flex; align-items: flex-start; gap: 15px; padding: 15px; border-radius: 12px; background: white; margin-bottom: 12px; transition: 0.3s; }
-        
-        /* 💡 正在進行 */
-        .schedule-item.active-now { 
-            border: 2px solid var(--primary); 
-            background: #e0f7fa; 
-            transform: scale(1.02); 
-            box-shadow: 0 4px 10px rgba(42, 183, 202, 0.2); 
-            z-index: 2;
-        }
-
-        /* 🌑 已經結束 (變灰) */
-        .schedule-item.past {
-            background: #f4f4f4;
-            opacity: 0.6;
-            border: 1px solid #eee;
-            filter: grayscale(100%);
-        }
-        .schedule-item.past .time-badge {
-            background: #e0e0e0;
-            color: #888;
-        }
-        
+        .schedule-item.active-now { border: 2px solid var(--primary); background: #e0f7fa; transform: scale(1.02); box-shadow: 0 4px 10px rgba(42, 183, 202, 0.2); z-index: 2; }
+        .schedule-item.past { background: #f4f4f4; opacity: 0.6; border: 1px solid #eee; filter: grayscale(100%); }
+        .schedule-item.past .time-badge { background: #e0e0e0; color: #888; }
         .time-badge { background: rgba(42, 183, 202, 0.1); color: var(--primary); padding: 5px 8px; border-radius: 6px; font-weight: bold; font-size: 14px; min-width: 65px; text-align: center; }
 
         /* 🏆 排行榜 */
@@ -97,12 +81,26 @@
         .score-bar-fill { height: 100%; background: var(--secondary); border-radius: 4px; }
         .score-num { font-weight: bold; font-size: 16px; min-width: 40px; text-align: right; color: var(--primary); }
 
-        /* ⚗️ 實驗與討論區 */
-        .lab-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        /* ⚗️ 實驗表單與歷史紀錄 */
+        .lab-form { display: flex; flex-direction: column; gap: 15px; }
         .lab-field { display: flex; flex-direction: column; }
         .lab-field label { font-size: 12px; color: #666; margin-bottom: 5px; font-weight: bold; }
-        .lab-field input, .lab-field textarea { padding: 10px; border: 2px solid #eee; border-radius: 8px; font-size: 16px; text-align: center; background: #FAFAFA; width: 100%; }
-        .lab-field textarea { text-align: left; resize: none; }
+        .lab-field input, .lab-field textarea { 
+            padding: 10px; border: 2px solid #eee; border-radius: 8px; font-size: 16px; 
+            background: #FAFAFA; width: 100%; transition: 0.3s;
+        }
+        .lab-field input:focus, .lab-field textarea:focus { border-color: var(--primary); background: white; outline: none; }
+        
+        /* 實驗紀錄列表 */
+        .exp-history-item { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--primary); font-size: 14px; }
+        .exp-history-header { font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px; color: var(--primary); }
+        .exp-history-detail { color: #555; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+
+        /* 實驗二按鈕群組 */
+        .trial-selector { display: flex; gap: 10px; margin-bottom: 15px; }
+        .trial-btn { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 8px; background: white; color: #666; font-weight: bold; }
+        .trial-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
         .topic-item { border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; background: white; }
         .comment-item { background: #f9f9f9; padding: 12px 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--secondary); }
         .comment-input-area { position: fixed; bottom: 60px; left: 0; width: 100%; background: white; padding: 10px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #ddd; z-index: 900; }
@@ -126,7 +124,7 @@
             <h2 style="color: var(--primary); margin-top: 0;">2026 台大生工營</h2>
             <p style="color: #888; font-size: 14px; margin-bottom: 20px;">請輸入姓名與身分證字號</p>
             <input type="text" id="loginName" class="login-input" placeholder="姓名 (例: 王小明)">
-            <input type="password" id="loginID" class="login-input" placeholder="身分證字號 (例: A123456789)">
+            <input type="text" id="loginID" class="login-input" placeholder="身分證字號 (例: A123...)">
             <button class="btn" onclick="handleLogin()">進入營隊系統</button>
         </div>
     </div>
@@ -183,7 +181,7 @@
                 <div class="card" style="text-align: center; cursor: pointer; margin-bottom:0;" onclick="openSubPage('experiment-page')">
                     <i class="fas fa-flask" style="font-size: 30px; color: var(--primary); margin-bottom: 10px;"></i>
                     <h3 style="font-size: 14px; margin:0;">實驗紀錄</h3>
-                    <span style="font-size: 10px; color: #888;">上傳水質數據</span>
+                    <span style="font-size: 10px; color: #888;">填寫實驗數據</span>
                 </div>
                 <div class="card" style="text-align: center; cursor: pointer; margin-bottom:0;" onclick="openSubPage('notes-page')">
                     <i class="fas fa-comments" style="font-size: 30px; color: var(--accent); margin-bottom: 10px;"></i>
@@ -197,23 +195,85 @@
             <button class="back-btn" onclick="switchPage('activity', document.querySelectorAll('.nav-item')[2])">
                 <i class="fas fa-chevron-left"></i> 返回活動
             </button>
-            <h2 style="color: var(--primary);">⚗️ 水質檢測紀錄</h2>
+            <h2 style="color: var(--primary);">⚗️ 實驗數據紀錄</h2>
+            
             <div class="card">
-                <p style="font-size: 12px; color: #888; text-align: center; margin-bottom: 15px;">
-                    第 <b id="exp-group-num">?</b> 小組數據
+                <p style="font-size: 12px; color: #888; text-align: center; margin-bottom: 10px;">
+                    第 <b id="exp-group-num">?</b> 小組
                 </p>
-                <div class="lab-form">
-                    <div class="lab-field"><label>pH 酸鹼值</label><input type="number" id="lab-ph" step="0.1" placeholder="7.0"></div>
-                    <div class="lab-field"><label>水溫 Temp.</label><input type="number" id="lab-temp" step="0.1" placeholder="25.0"></div>
-                    <div class="lab-field"><label>導電度 EC</label><input type="number" id="lab-ec" placeholder="200"></div>
-                    <div class="lab-field"><label>濁度 Turbidity</label><input type="number" id="lab-tb" placeholder="5.0"></div>
+                <div class="day-tabs">
+                    <div class="day-tab active" id="tab-exp1" onclick="switchExpTab(1)">實驗一: 淹水模擬</div>
+                    <div class="day-tab" id="tab-exp2" onclick="switchExpTab(2)">實驗二: 物理過濾</div>
                 </div>
-                <div class="lab-field" style="margin-top: 15px;">
-                    <label>觀察與備註</label>
-                    <textarea id="lab-note" style="height:80px;" placeholder="水體顏色、氣味..."></textarea>
+
+                <div id="exp1-container" style="display: block;">
+                    
+                    <div id="exp1-history-list" style="margin-top:15px; max-height: 200px; overflow-y: auto;">
+                        </div>
+
+                    <hr style="border:0; border-top:1px dashed #ddd; margin: 15px 0;">
+                    
+                    <h4 style="margin:0 0 10px 0; color:var(--primary);">➕ 新增一筆數據</h4>
+                    <div class="lab-form">
+                        <div class="lab-field" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <div>
+                                <label>沙包數量</label>
+                                <input type="number" id="exp1-sandbag-count" placeholder="0">
+                            </div>
+                            <div>
+                                <label>抽水機數量</label>
+                                <input type="number" id="exp1-pump-count" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="lab-field">
+                            <label>配置座標 (例如: 沙包(3,4), 抽水(1,1))</label>
+                            <input type="text" id="exp1-coords" placeholder="簡述座標位置">
+                        </div>
+                        <div class="lab-field">
+                            <label>總淹水面積 (m²)</label>
+                            <input type="number" id="exp1-area" placeholder="輸入結果">
+                        </div>
+                        <button class="btn" onclick="addExp1Record()">
+                            <i class="fas fa-plus"></i> 新增此筆紀錄
+                        </button>
+                    </div>
                 </div>
-                <div style="font-size:10px; color:#888; text-align:right; margin: 10px 0;" id="exp-status">尚未儲存</div>
-                <button class="btn" onclick="saveLabData()" id="exp-btn"><i class="fas fa-cloud-upload-alt"></i> 上傳數據</button>
+
+                <div id="exp2-container" style="display: none;">
+                    
+                    <div class="trial-selector" style="margin-top: 15px;">
+                        <button class="trial-btn active" id="trial-1-btn" onclick="switchExp2Trial(0)">第一次嘗試</button>
+                        <button class="trial-btn" id="trial-2-btn" onclick="switchExp2Trial(1)">第二次嘗試</button>
+                    </div>
+
+                    <div class="lab-form">
+                        <div class="lab-field">
+                            <label>過濾介質組合 (例如: 砂+小石+棉花)</label>
+                            <textarea id="exp2-media" rows="2" placeholder="由上而下描述..."></textarea>
+                        </div>
+                        <div class="lab-field">
+                            <label>泥水顏色變化</label>
+                            <input type="text" id="exp2-color" placeholder="例如: 深褐 -> 淺黃">
+                        </div>
+                        <div class="lab-field" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <div>
+                                <label>過濾前濁度</label>
+                                <input type="number" id="exp2-pre-turbidity" placeholder="NTU">
+                            </div>
+                            <div>
+                                <label>過濾後濁度</label>
+                                <input type="number" id="exp2-post-turbidity" placeholder="NTU">
+                            </div>
+                        </div>
+                        
+                        <div style="font-size:10px; color:#888; text-align:right; margin-top:5px;" id="exp2-status">尚未儲存</div>
+
+                        <button class="btn" onclick="saveExp2Record()">
+                            <i class="fas fa-save"></i> 儲存本嘗試數據
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -267,7 +327,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyCIrDF_HbcjgvafKfGRjF7VhB0pLpJO6W8",
             authDomain: "bse-camp.firebaseapp.com",
@@ -279,10 +338,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Google Apps Script URL
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw80JUzl6md7mEW8DqsIRojefbSjCeTLiXb67la7sTkS4CsmAJaEiU3cCuUzBnGmep/exec";
 
-        // 狀態變數
+        // State
         let currentUser = { name: "學員", group: "1", room: "無" };
         let cachedData = JSON.parse(localStorage.getItem('bse_camp_data')) || null;
         let mockTime = null;
@@ -291,28 +349,27 @@
         let unsubscribeComments = null;
         let unsubscribeTopics = null;
         let statusInterval = null;
+        
+        // 實驗狀態
+        let currentExpTab = 1;
+        let exp1Logs = []; // 存實驗一的歷史紀錄 array
+        let exp2Trials = [{}, {}]; // 存實驗二的兩次紀錄
+        let currentExp2TrialIndex = 0; // 0 或 1
 
-        // 🌟 時區校正後的日期清洗 (UTC -> +8)
         function cleanDate(raw) {
             if (!raw) return "";
-            if (String(raw).includes('/') && String(raw).length < 6) return raw; // 如果已經是 1/26 格式
-            
+            if (String(raw).includes('/') && String(raw).length < 6) return raw;
             const d = new Date(raw);
             if (isNaN(d.getTime())) return String(raw).substring(0, 5);
-            
-            // 強制 +8 小時處理時區
             const twTime = new Date(d.getTime() + (8 * 60 * 60 * 1000));
             return (twTime.getUTCMonth() + 1) + "/" + twTime.getUTCDate();
         }
 
-        // 🌟 時區校正後的時間清洗 (UTC -> +8)
         function cleanTime(raw) {
             if (!raw) return "--:--";
             const s = String(raw);
-            
             if (s.includes("T") || s.length > 8) {
                 const d = new Date(raw);
-                // 強制 +8 小時
                 const twTime = new Date(d.getTime() + (8 * 60 * 60 * 1000));
                 return twTime.getUTCHours().toString().padStart(2,'0') + ":" + twTime.getUTCMinutes().toString().padStart(2,'0');
             }
@@ -320,7 +377,7 @@
         }
 
         // ========================
-        // 1. 登入與初始化
+        // 1. Login (Real Validation)
         // ========================
         window.handleLogin = async function() {
             const inputName = document.getElementById('loginName').value.trim();
@@ -331,43 +388,35 @@
                 return;
             }
 
-            // 1. 隱藏輸入框，顯示 Loading
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('loading-mask').style.display = 'flex';
 
-            // 2. 抓取最新資料 (含 Campers 名單)
-            await fetchData();
+            await fetchData(); // Force fetch list
 
-            // 3. 比對使用者
             const campersList = cachedData ? (cachedData.campers || []) : [];
             const user = campersList.find(c => c.name === inputName && String(c.id).toUpperCase() === inputID.toUpperCase());
 
             if (user) {
-                // ✅ 登入成功
                 currentUser = user;
                 
-                // 進入主畫面
                 document.getElementById('loading-mask').style.display = 'none';
                 document.getElementById('app-container').style.display = 'block';
                 
-                // 更新畫面資訊
                 document.getElementById('user-name').innerText = currentUser.name;
                 document.getElementById('info-group').innerText = currentUser.group;
                 document.getElementById('info-room').innerText = currentUser.room;
                 document.getElementById('exp-group-num').innerText = currentUser.group;
                 document.getElementById('discussion-header').innerText = `📌 第 ${currentUser.group} 小組成發筆記`;
 
-                // 啟動功能
                 initGroupSync(currentUser.group);
                 initDiscussion(currentUser.group);
                 renderAll();
                 
                 alert(`歡迎回來，${user.name}！\n你被分配在第 ${user.group} 小隊`);
             } else {
-                // ❌ 登入失敗
                 document.getElementById('loading-mask').style.display = 'none';
-                document.getElementById('login-overlay').style.display = 'flex'; // 顯示回登入框
-                alert("登入失敗！\n請檢查姓名或身分證字號是否正確。\n(若為剛新增的名單，請重新整理網頁後再試)");
+                document.getElementById('login-overlay').style.display = 'flex';
+                alert("登入失敗！請檢查姓名或身分證是否正確。");
             }
         };
 
@@ -392,7 +441,7 @@
         }
 
         // ========================
-        // 2. 頁面渲染邏輯
+        // 2. Rendering
         // ========================
         
         function renderAnnouncements() {
@@ -410,13 +459,11 @@
             }).join('') : `<div class="card" style="color:#888;">目前無公告</div>`;
         }
 
-        // 🌟 行程表
         function initSchedule() {
             const list = cachedData.schedule || [];
             if(list.length === 0) return;
 
             const days = [...new Set(list.map(i => cleanDate(i.day)))];
-            
             const now = mockTime || new Date();
             const todayStr = (now.getMonth() + 1) + "/" + now.getDate();
             
@@ -440,33 +487,23 @@
 
         window.setTab = function(d) {
             currentTabDay = d;
-            
-            // 💡 修正：手動更新 Tab 按鈕的 active 狀態
             document.querySelectorAll('.day-tab').forEach(t => {
                 if(t.innerText === d) t.classList.add('active');
                 else t.classList.remove('active');
             });
-
             renderScheduleList();
         }
 
-        // 🚀 新增：點擊首頁行程跳轉功能
         window.jumpToCurrentSchedule = function() {
             const now = mockTime || new Date();
             const todayStr = (now.getMonth() + 1) + "/" + now.getDate();
-            
-            // 1. 切換到行程頁
             switchPage('schedule', document.querySelectorAll('.nav-item')[1]);
             
-            // 2. 切換到當天 Tab
             const list = cachedData.schedule || [];
             const days = [...new Set(list.map(i => cleanDate(i.day)))];
             
-            if (days.includes(todayStr)) {
-                setTab(todayStr);
-            } else if (days.length > 0) {
-                setTab(days[0]); // 若今天沒行程，跳第一個
-            }
+            if (days.includes(todayStr)) setTab(todayStr);
+            else if (days.length > 0) setTab(days[0]);
         };
 
         function renderScheduleList() {
@@ -595,7 +632,7 @@
                 
                 let btn = "";
                 if(type === 'tel' && val) btn = `<button class="btn" onclick="location.href='tel:${val}'"><i class="fas fa-phone"></i> 撥打</button>`;
-                if(type === 'link' && val) btn = `<button class="btn btn-secondary" onclick="window.open('${val}')"><i class="fas fa-link"></i> 開啟</button>`;
+                if(type === 'link' && val) btn = `<button class="btn btn-secondary" onclick="window.open('${val}')"><i class="fas fa-link"></i> 開啟連結</button>`;
 
                 return `
                 <div class="card">
@@ -607,40 +644,128 @@
         }
 
         // ========================
-        // 3. Firebase 功能
+        // 3. Firebase & Experiment Logic
         // ========================
+        
+        // 實驗 Tab 切換 (實驗 1 vs 實驗 2)
+        window.switchExpTab = function(expId) {
+            currentExpTab = expId;
+            document.getElementById('tab-exp1').classList.toggle('active', expId === 1);
+            document.getElementById('tab-exp2').classList.toggle('active', expId === 2);
+            document.getElementById('exp1-container').style.display = expId === 1 ? 'block' : 'none';
+            document.getElementById('exp2-container').style.display = expId === 2 ? 'block' : 'none';
+        };
+
+        // 實驗 2 的嘗試切換 (Trial 1 vs Trial 2)
+        window.switchExp2Trial = function(index) {
+            currentExp2TrialIndex = index;
+            document.getElementById('trial-1-btn').classList.toggle('active', index === 0);
+            document.getElementById('trial-2-btn').classList.toggle('active', index === 1);
+            
+            // 讀取該次嘗試的數據並填入表單
+            const data = exp2Trials[index] || {};
+            document.getElementById('exp2-media').value = data.media || "";
+            document.getElementById('exp2-color').value = data.color || "";
+            document.getElementById('exp2-pre-turbidity').value = data.preTurb || "";
+            document.getElementById('exp2-post-turbidity').value = data.postTurb || "";
+        };
+
         function initGroupSync(groupId) {
             onSnapshot(doc(db, "groups", "group_" + groupId), (docSnap) => {
                 if (docSnap.exists()) {
                     const d = docSnap.data();
-                    if(d.labData) {
-                        ['lab-ph', 'lab-temp', 'lab-ec', 'lab-tb', 'lab-note'].forEach(id => {
-                            if(document.activeElement.id !== id) document.getElementById(id).value = d.labData[id] || "";
-                        });
-                        if(d.labLastEditor) document.getElementById('exp-status').innerText = `最後更新: ${d.labLastEditor}`;
-                    }
+                    
+                    // 1. 載入實驗一 (Logs 陣列)
+                    exp1Logs = d.exp1_logs || [];
+                    renderExp1Logs();
+
+                    // 2. 載入實驗二 (Trials 陣列, 固定長度 2)
+                    exp2Trials = d.exp2_logs || [{}, {}];
+                    // 刷新目前顯示的 Trial 表單
+                    switchExp2Trial(currentExp2TrialIndex); 
+                    
+                    if(d.labLastEditor) document.getElementById('exp2-status').innerText = `最後更新: ${d.labLastEditor}`;
                 }
             });
         }
 
-        window.saveLabData = async function() {
-            const btn = document.getElementById('exp-btn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 上傳中...';
-            const data = {
-                'lab-ph': document.getElementById('lab-ph').value,
-                'lab-temp': document.getElementById('lab-temp').value,
-                'lab-ec': document.getElementById('lab-ec').value,
-                'lab-tb': document.getElementById('lab-tb').value,
-                'lab-note': document.getElementById('lab-note').value
+        // 渲染實驗一的歷史紀錄列表
+        function renderExp1Logs() {
+            const list = document.getElementById('exp1-history-list');
+            if (exp1Logs.length === 0) {
+                list.innerHTML = "<p style='color:#999; text-align:center;'>尚未有紀錄</p>";
+                return;
+            }
+            list.innerHTML = exp1Logs.map((log, i) => `
+                <div class="exp-history-item">
+                    <div class="exp-history-header">
+                        <span>#${i+1} 紀錄</span>
+                        <span style="font-size:12px; font-weight:normal;">面積: ${log.area} m²</span>
+                    </div>
+                    <div class="exp-history-detail">
+                        <span>沙包: ${log.sandbagCount} 個</span>
+                        <span>抽水: ${log.pumpCount} 個</span>
+                        <span style="grid-column: span 2; font-size:12px;">📍 ${log.coords}</span>
+                    </div>
+                </div>
+            `).join('');
+            // 捲動到底部
+            list.scrollTop = list.scrollHeight;
+        }
+
+        // 新增實驗一紀錄 (Append)
+        window.addExp1Record = async function() {
+            const countS = document.getElementById('exp1-sandbag-count').value;
+            const countP = document.getElementById('exp1-pump-count').value;
+            const coords = document.getElementById('exp1-coords').value;
+            const area = document.getElementById('exp1-area').value;
+
+            if(!area) return alert("請輸入淹水面積");
+
+            const newLog = {
+                sandbagCount: countS,
+                pumpCount: countP,
+                coords: coords,
+                area: area,
+                timestamp: new Date().toISOString()
             };
+
+            // 複製舊陣列並加入新紀錄
+            const updatedLogs = [...exp1Logs, newLog];
+
             try {
                 await setDoc(doc(db, "groups", "group_" + currentUser.group), {
-                    labData: data, labLastEditor: currentUser.name, labTime: new Date().toISOString()
+                    exp1_logs: updatedLogs,
+                    labLastEditor: currentUser.name
                 }, { merge: true });
-                btn.innerHTML = '<i class="fas fa-check"></i> 成功';
-                setTimeout(()=>btn.innerHTML='<i class="fas fa-cloud-upload-alt"></i> 上傳數據', 1500);
-            } catch(e) { alert("上傳失敗"); btn.innerHTML = '重試'; }
-        }
+                
+                alert("新增成功！");
+                // 清空輸入
+                document.getElementById('exp1-area').value = "";
+                document.getElementById('exp1-coords').value = "";
+            } catch(e) { console.error(e); alert("新增失敗"); }
+        };
+
+        // 儲存實驗二紀錄 (Update specific index)
+        window.saveExp2Record = async function() {
+            const data = {
+                media: document.getElementById('exp2-media').value,
+                color: document.getElementById('exp2-color').value,
+                preTurb: document.getElementById('exp2-pre-turbidity').value,
+                postTurb: document.getElementById('exp2-post-turbidity').value
+            };
+
+            // 更新本地陣列的特定位置
+            exp2Trials[currentExp2TrialIndex] = data;
+
+            try {
+                await setDoc(doc(db, "groups", "group_" + currentUser.group), {
+                    exp2_logs: exp2Trials,
+                    labLastEditor: currentUser.name
+                }, { merge: true });
+                alert("儲存成功！");
+            } catch(e) { console.error(e); alert("儲存失敗"); }
+        };
 
         function initDiscussion(groupId) {
             if(unsubscribeTopics) unsubscribeTopics();
