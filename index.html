@@ -47,7 +47,7 @@
                         <input type="text" name="major" required placeholder="你讀什麼系？" class="w-full bg-white/50 rounded-2xl p-4 shadow-inner">
                     </div>
                     <div class="space-y-4">
-                        <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">專業硬實力</h4>
+                        <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">專業硬實力 (選 1-3 個)</h4>
                         <div id="skills-container" class="grid grid-cols-1 gap-2"></div>
                     </div>
                     <div class="space-y-4">
@@ -83,7 +83,6 @@
     </main>
 
     <script>
-        // 選項邏輯維持相同
         const SKILLS = ["數據統計與程式開發", "工程學與空間營造", "理化實驗與物質檢測", "環境生態與農林實務", "商業企劃與專案管理", "專業法規與政策解讀", "文字撰稿與公關溝通", "視覺設計與影音展演", "醫療生技與公共衛生"];
         let selectedSkills = [];
         const skillsContainer = document.getElementById('skills-container');
@@ -128,45 +127,58 @@
             };
 
             try {
-                // ！！！請將下方的網址替換為你的 n8n Production Webhook URL ！！！
+                // ！！！請確認此為正式 Production Webhook URL ！！！
                 const response = await fetch('https://hikko.app.n8n.cloud/webhook/4f54006c-a203-4506-99ec-cd83b3894918', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error('n8n 回傳錯誤，請確認是否有加 Respond to Webhook 節點');
+                if (!response.ok) throw new Error('伺服器未回傳資料');
                 const data = await response.json();
                 renderResult(data);
             } catch (err) {
                 console.error(err);
-                alert('系統連線異常：' + err.message);
+                alert('系統連線異常：' + err.message + '\n請確認 n8n 已切換至 Active 模式。');
                 showView('view-form');
             }
         };
 
         function renderResult(data) {
             showView('view-result');
-            console.log("Debug - Received Data:", data);
+            console.log("收到資料:", data);
 
-            // 強化版抓取邏輯：優先找 AI Agent1 的文字
-            const feedbackText = data.text || data.output || (data[0] && data[0].text) || "分析完成！祝你職涯順利。";
-            document.getElementById('ai-feedback').innerText = feedbackText;
+            // 1. 取得 AI 輸出內容 (處理單一物件或陣列包裹)
+            let rawData = Array.isArray(data) ? data[0] : data;
+            let fullContent = rawData.output || rawData.text || "";
             
+            // 2. 解析回饋文字與 JSON 資料
+            let feedbackText = fullContent.split('[{"job_name"')[0].trim();
+            document.getElementById('ai-feedback').innerText = feedbackText || "分析完成！祝你職涯順利。";
+
+            // 3. 取得職缺清單
+            let jobs = [];
+            if (rawData.recommended_jobs) {
+                jobs = rawData.recommended_jobs;
+            } else if (fullContent.includes('[{"job_name"')) {
+                try {
+                    const jsonPart = fullContent.match(/\[\{"job_name".*\}\]/);
+                    if (jsonPart) jobs = JSON.parse(jsonPart[0]);
+                } catch (e) { console.error("職缺清單解析失敗", e); }
+            }
+
             const jobList = document.getElementById('job-list');
             jobList.innerHTML = '';
             
-            // 抓取職缺清單
-            const jobs = data.recommended_jobs || (data[0] && data[0].recommended_jobs) || [];
-            
             if (jobs.length === 0) {
-                jobList.innerHTML = '<p class="text-center text-stone-400 py-10">讀取不到職缺資料，請檢查 n8n 的 Respond 節點設定。</p>';
+                jobList.innerHTML = '<p class="text-center text-stone-400 py-10 text-sm">正在產生結果，請再試一次。</p>';
                 return;
             }
 
             jobs.forEach((job, idx) => {
                 const card = document.createElement('div');
-                card.className = `p-6 rounded-[32px] border-2 mb-4 ${idx === 0 ? 'border-[#52B788] bg-[#F7FCF9]' : 'border-stone-50 bg-white'}`;
+                card.className = `p-6 rounded-[32px] border-2 mb-4 animate__animated animate__fadeInUp ${idx === 0 ? 'border-[#52B788] bg-[#F7FCF9] shadow-md' : 'border-stone-50 bg-white'}`;
+                card.style.animationDelay = `${idx * 0.2}s`;
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full">MATCH ${job.total_score || '85'}%</span>
