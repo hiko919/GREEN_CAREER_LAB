@@ -19,7 +19,7 @@
 <body class="text-stone-700 pb-20">
 
     <nav class="p-8 text-center animate__animated animate__fadeIn">
-        <div class="inline-block p-4 bg-white rounded-[24px] shadow-sm mb-2">
+        <div class="inline-block p-4 bg-white rounded-[24px] shadow-sm mb-2 border border-emerald-50">
             <h1 class="text-xl font-bold text-[#2D6A4F] tracking-widest">GREEN CAREER LAB</h1>
         </div>
         <p class="text-[10px] text-[#52B788] font-black uppercase tracking-[0.3em]">NTUSA Sustainability Group</p>
@@ -28,7 +28,7 @@
     <main class="max-w-xl mx-auto px-6">
         
         <section id="view-start" class="text-center py-10 animate__animated animate__fadeIn">
-            <div class="mb-10 inline-block p-6 bg-white rounded-[40px] shadow-xl">
+            <div class="mb-10 inline-block p-6 bg-white rounded-[40px] shadow-xl border border-emerald-50">
                 <span class="text-6xl">🌱</span>
             </div>
             <h2 class="text-4xl font-black text-[#1B4332] mb-6 leading-tight">探測你的<br><span class="text-[#52B788]">綠領職涯 DNA</span></h2>
@@ -41,10 +41,10 @@
                 <form id="quizForm" class="space-y-8">
                     <div class="space-y-4">
                         <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">基本資訊</h4>
-                        <input type="text" name="name" required placeholder="你的大名" class="w-full bg-white/50 rounded-2xl p-4 transition-all">
-                        <input type="text" name="studentId" required placeholder="學號 (如 B12345678)" class="w-full bg-white/50 rounded-2xl p-4 transition-all">
-                        <input type="email" name="email" required placeholder="你的 Email" class="w-full bg-white/50 rounded-2xl p-4 transition-all">
-                        <input type="text" name="major" required placeholder="你讀什麼系咧？" class="w-full bg-white/50 rounded-2xl p-4 transition-all">
+                        <input type="text" name="name" required placeholder="你的大名" class="w-full bg-white/50 rounded-2xl p-4 transition-all shadow-inner">
+                        <input type="text" name="studentId" required placeholder="學號 (如 B12345678)" class="w-full bg-white/50 rounded-2xl p-4 transition-all shadow-inner">
+                        <input type="email" name="email" required placeholder="你的 Email" class="w-full bg-white/50 rounded-2xl p-4 transition-all shadow-inner">
+                        <input type="text" name="major" required placeholder="你讀什麼系咧？" class="w-full bg-white/50 rounded-2xl p-4 transition-all shadow-inner">
                     </div>
 
                     <div class="space-y-4">
@@ -54,9 +54,9 @@
 
                     <div class="space-y-4">
                         <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">你的故事</h4>
-                        <textarea name="achievement" required placeholder="大學期間最有成就感的一件事？" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none"></textarea>
-                        <textarea name="environment" required placeholder="你想像中的工作環境？(如：跑戶外、專注寫 code)" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none"></textarea>
-                        <textarea name="value" required placeholder="希望工作為世界帶來什麼價值？" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none"></textarea>
+                        <textarea name="achievement" required placeholder="大學期間最有成就感的一件事？" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none shadow-inner"></textarea>
+                        <textarea name="environment" required placeholder="你想像中的工作環境？(如：跑戶外、專注寫 code)" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none shadow-inner"></textarea>
+                        <textarea name="value" required placeholder="希望工作為世界帶來什麼價值？" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none shadow-inner"></textarea>
                     </div>
 
                     <button type="submit" class="w-full bg-[#52B788] hover:bg-[#2D6A4F] text-white py-5 rounded-full text-xl font-bold shadow-lg transition-all active:scale-95">送出探測，生成報告</button>
@@ -69,13 +69,13 @@
                 <div class="w-24 h-24 border-8 border-white loader rounded-full animate-spin"></div>
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl">🔬</div>
             </div>
-            <h3 id="loading-text" class="text-xl font-bold text-[#1B4332] h-8">AI 顧問正在讀取你的故事...</h3>
+            <h3 id="loading-text" class="text-xl font-bold text-[#1B4332] h-8 text-center">AI 顧問正在讀取你的故事...</h3>
             <p class="text-stone-400 mt-4 tracking-[0.2em] animate-pulse italic text-sm text-center">正在計算 35 個職缺的適配度</p>
         </section>
 
         <section id="view-result" class="hidden animate__animated animate__fadeInUp">
             <div class="bg-white rounded-[40px] p-8 shadow-2xl border border-emerald-50 mb-8">
-                <div class="bg-[#F7FCF9] rounded-[30px] p-6 mb-8 relative border border-[#E8F5EE]">
+                <div class="bg-[#F7FCF9] rounded-[30px] p-6 mb-8 relative border border-[#E8F5EE] shadow-inner">
                     <span class="absolute -top-4 -left-2 text-5xl text-[#D8F3DC]">“</span>
                     <p id="ai-feedback" class="text-stone-600 leading-relaxed italic relative z-10 text-sm md:text-base"></p>
                 </div>
@@ -83,7 +83,7 @@
                 <h4 class="text-center text-[10px] font-black text-stone-300 uppercase tracking-[0.4em] mb-6">最佳職涯推薦</h4>
                 <div id="job-list" class="space-y-4"></div>
             </div>
-            <button onclick="location.reload()" class="w-full py-4 text-stone-400 font-bold hover:text-[#52B788] transition-colors">重新測驗</button>
+            <button onclick="location.reload()" class="w-full py-4 text-stone-400 font-bold hover:text-[#52B788] transition-colors">重新進行測驗</button>
         </section>
 
     </main>
@@ -151,22 +151,23 @@
             };
 
             try {
+                // ！！！請將下方的網址替換為你的 n8n Production Webhook URL ！！！
                 const response = await fetch('https://hikko.app.n8n.cloud/webhook/4f54006c-a203-4506-99ec-cd83b3894918', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error('伺服器回應錯誤');
+                if (!response.ok) throw new Error('伺服器連線失敗');
                 
                 const data = await response.json();
-                console.log("n8n Response Received:", data);
+                console.log("n8n Response Data:", data);
                 
                 clearInterval(interval);
                 renderResult(data);
             } catch (err) {
                 console.error("Fetch Error:", err);
-                alert('連線失敗！請確保 Webhook 已開啟且 URL 正確。');
+                alert('連線失敗！請確保 Webhook 已開啟且網址正確。');
                 showView('view-form');
                 clearInterval(interval);
             }
@@ -175,18 +176,18 @@
         function renderResult(data) {
             showView('view-result');
             
-            // 抓取回饋文字 (相容多種回傳格式)
+            // 自動偵測回饋文字路徑 (相容 data.text 或 data.output)
             const feedbackText = data.text || data.output || (data.student_summary && data.student_summary.ai_feedback) || "分析完成！祝你職涯順利。";
             document.getElementById('ai-feedback').innerText = feedbackText;
             
             const jobList = document.getElementById('job-list');
             jobList.innerHTML = '';
             
-            // 抓取職缺資料 (相容多種回傳格式)
-            const jobs = data.recommended_jobs || (data.student_profile && data.recommended_jobs) || [];
+            // 自動偵測職缺資料路徑
+            const jobs = data.recommended_jobs || [];
             
             if (jobs.length === 0) {
-                jobList.innerHTML = '<p class="text-center text-stone-400 py-10">目前沒有完全匹配的職缺，建議重新填寫故事喔！</p>';
+                jobList.innerHTML = '<p class="text-center text-stone-400 py-10">AI 顧問暫時找不到完全匹配的職缺，建議重新描述故事喔！</p>';
                 return;
             }
 
