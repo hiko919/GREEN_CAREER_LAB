@@ -41,24 +41,21 @@
                 <form id="quizForm" class="space-y-8">
                     <div class="space-y-4">
                         <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">基本資訊</h4>
-                        <input type="text" name="name" required placeholder="你的大名" class="w-full bg-white/50 rounded-2xl p-4 transition-all shadow-inner">
-                        <input type="text" name="studentId" required placeholder="學號 (如 B12345678)" class="w-full bg-white/50 rounded-2xl p-4 transition-all shadow-inner">
-                        <input type="email" name="email" required placeholder="你的 Email" class="w-full bg-white/50 rounded-2xl p-4 transition-all shadow-inner">
-                        <input type="text" name="major" required placeholder="你讀什麼系咧？" class="w-full bg-white/50 rounded-2xl p-4 transition-all shadow-inner">
+                        <input type="text" name="name" required placeholder="你的大名" class="w-full bg-white/50 rounded-2xl p-4 shadow-inner">
+                        <input type="text" name="studentId" required placeholder="學號" class="w-full bg-white/50 rounded-2xl p-4 shadow-inner">
+                        <input type="email" name="email" required placeholder="你的 Email" class="w-full bg-white/50 rounded-2xl p-4 shadow-inner">
+                        <input type="text" name="major" required placeholder="你讀什麼系？" class="w-full bg-white/50 rounded-2xl p-4 shadow-inner">
                     </div>
-
                     <div class="space-y-4">
-                        <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">專業硬實力 (選 1-3 個)</h4>
+                        <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">專業硬實力</h4>
                         <div id="skills-container" class="grid grid-cols-1 gap-2"></div>
                     </div>
-
                     <div class="space-y-4">
                         <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">你的故事</h4>
-                        <textarea name="achievement" required placeholder="大學期間最有成就感的一件事？" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none shadow-inner"></textarea>
-                        <textarea name="environment" required placeholder="你想像中的工作環境？(如：跑戶外、專注寫 code)" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none shadow-inner"></textarea>
-                        <textarea name="value" required placeholder="希望工作為世界帶來什麼價值？" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none shadow-inner"></textarea>
+                        <textarea name="achievement" required placeholder="最有成就感的一件事？" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none shadow-inner"></textarea>
+                        <textarea name="environment" required placeholder="想像的工作環境？" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none shadow-inner"></textarea>
+                        <textarea name="value" required placeholder="希望帶來的價值？" class="w-full bg-white/50 rounded-2xl p-4 h-28 resize-none shadow-inner"></textarea>
                     </div>
-
                     <button type="submit" class="w-full bg-[#52B788] hover:bg-[#2D6A4F] text-white py-5 rounded-full text-xl font-bold shadow-lg transition-all active:scale-95">送出探測，生成報告</button>
                 </form>
             </div>
@@ -69,8 +66,7 @@
                 <div class="w-24 h-24 border-8 border-white loader rounded-full animate-spin"></div>
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl">🔬</div>
             </div>
-            <h3 id="loading-text" class="text-xl font-bold text-[#1B4332] h-8 text-center">AI 顧問正在讀取你的故事...</h3>
-            <p class="text-stone-400 mt-4 tracking-[0.2em] animate-pulse italic text-sm text-center">正在計算 35 個職缺的適配度</p>
+            <h3 id="loading-text" class="text-xl font-bold text-[#1B4332]">AI 顧問正在分析你的故事...</h3>
         </section>
 
         <section id="view-result" class="hidden animate__animated animate__fadeInUp">
@@ -79,35 +75,22 @@
                     <span class="absolute -top-4 -left-2 text-5xl text-[#D8F3DC]">“</span>
                     <p id="ai-feedback" class="text-stone-600 leading-relaxed italic relative z-10 text-sm md:text-base"></p>
                 </div>
-                
                 <h4 class="text-center text-[10px] font-black text-stone-300 uppercase tracking-[0.4em] mb-6">最佳職涯推薦</h4>
                 <div id="job-list" class="space-y-4"></div>
             </div>
             <button onclick="location.reload()" class="w-full py-4 text-stone-400 font-bold hover:text-[#52B788] transition-colors">重新進行測驗</button>
         </section>
-
     </main>
 
     <script>
-        const SKILLS = [
-            "數據統計與程式開發（包含：Python/C++、大數據分析、資料庫管理、機器學習模型）",
-            "工程學與空間營造（包含：AutoCAD、BIM 建築資訊模型、GIS 空間地理資訊、土木/結構力學）",
-            "理化實驗與物質檢測（包含：化學合成、高分子材料特性、高精密儀器操作與檢驗）",
-            "環境生態與農林實務（包含：水處理與廢棄物工程、自然碳匯調查、土壤與植物學、生態復育）",
-            "商業企劃與專案管理（包含：商業模式規劃、財務報表分析、供應商談判、活動統籌）",
-            "專業法規與政策解讀（包含：研讀國內外法規、ISO 認證框架、公共政策分析、合規稽核）",
-            "文字撰稿與公關溝通（包含：新聞稿撰寫、社群文案企劃、利害關係人溝通、媒體應對）",
-            "視覺設計與影音展演（包含：UI/UX 介面優化、平面海報設計、影片剪輯、展場空間規劃）",
-            "醫療生技與公共衛生（包含：感染控制、流行病學統計、醫療廢棄物管理、生醫製藥）"
-        ];
-
+        // 選項邏輯維持相同
+        const SKILLS = ["數據統計與程式開發", "工程學與空間營造", "理化實驗與物質檢測", "環境生態與農林實務", "商業企劃與專案管理", "專業法規與政策解讀", "文字撰稿與公關溝通", "視覺設計與影音展演", "醫療生技與公共衛生"];
         let selectedSkills = [];
         const skillsContainer = document.getElementById('skills-container');
-
         SKILLS.forEach(skill => {
             const div = document.createElement('div');
-            div.className = "skill-tag border border-stone-100 p-4 rounded-2xl text-xs cursor-pointer transition-all hover:bg-white bg-white/40 shadow-sm";
-            div.innerText = skill.split('（')[0];
+            div.className = "skill-tag border border-stone-100 p-4 rounded-2xl text-xs cursor-pointer transition-all bg-white/40 shadow-sm";
+            div.innerText = skill;
             div.onclick = () => {
                 if (selectedSkills.includes(skill)) {
                     selectedSkills = selectedSkills.filter(s => s !== skill);
@@ -121,9 +104,7 @@
         });
 
         function showView(viewId) {
-            ['view-start', 'view-form', 'view-loading', 'view-result'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
+            ['view-start', 'view-form', 'view-loading', 'view-result'].forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById(viewId).classList.remove('hidden');
             window.scrollTo(0, 0);
         }
@@ -132,18 +113,14 @@
         form.onsubmit = async (e) => {
             e.preventDefault();
             if (selectedSkills.length === 0) return alert('請至少選擇一個專業硬實力喔！');
-
             showView('view-loading');
-            const loadingTexts = ["正在分析你的永續故事...", "AI 導師讀取數據中...", "匹配 35 個綠領職缺...", "即將完成最後導航..."];
-            let t = 0;
-            const interval = setInterval(() => { document.getElementById('loading-text').innerText = loadingTexts[++t % 4]; }, 2000);
 
             const formData = new FormData(form);
             const payload = {
                 "你的大名": formData.get('name'),
                 "學號": formData.get('studentId'),
                 "你的Email": formData.get('email'),
-                "你讀什麼系咧？（如果是碩博生的話請幫我打最接近的學士系名）": formData.get('major'),
+                "你讀什麼系咧？": formData.get('major'),
                 "你最有自信的「專業硬實力」是？（選1~3個）": selectedSkills,
                 "請分享你在大學期間，做過最有成就感的一件事？": formData.get('achievement'),
                 "=你想像中的工作環境": formData.get('environment'),
@@ -158,51 +135,45 @@
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error('伺服器連線失敗');
-                
+                if (!response.ok) throw new Error('n8n 回傳錯誤，請確認是否有加 Respond to Webhook 節點');
                 const data = await response.json();
-                console.log("n8n Response Data:", data);
-                
-                clearInterval(interval);
                 renderResult(data);
             } catch (err) {
-                console.error("Fetch Error:", err);
-                alert('連線失敗！請確保 Webhook 已開啟且網址正確。');
+                console.error(err);
+                alert('系統連線異常：' + err.message);
                 showView('view-form');
-                clearInterval(interval);
             }
-        };  
+        };
 
         function renderResult(data) {
             showView('view-result');
-            
-            // 自動偵測回饋文字路徑 (相容 data.text 或 data.output)
-            const feedbackText = data.text || data.output || (data.student_summary && data.student_summary.ai_feedback) || "分析完成！祝你職涯順利。";
+            console.log("Debug - Received Data:", data);
+
+            // 強化版抓取邏輯：優先找 AI Agent1 的文字
+            const feedbackText = data.text || data.output || (data[0] && data[0].text) || "分析完成！祝你職涯順利。";
             document.getElementById('ai-feedback').innerText = feedbackText;
             
             const jobList = document.getElementById('job-list');
             jobList.innerHTML = '';
             
-            // 自動偵測職缺資料路徑
-            const jobs = data.recommended_jobs || [];
+            // 抓取職缺清單
+            const jobs = data.recommended_jobs || (data[0] && data[0].recommended_jobs) || [];
             
             if (jobs.length === 0) {
-                jobList.innerHTML = '<p class="text-center text-stone-400 py-10">AI 顧問暫時找不到完全匹配的職缺，建議重新描述故事喔！</p>';
+                jobList.innerHTML = '<p class="text-center text-stone-400 py-10">讀取不到職缺資料，請檢查 n8n 的 Respond 節點設定。</p>';
                 return;
             }
 
             jobs.forEach((job, idx) => {
                 const card = document.createElement('div');
-                card.className = `p-6 rounded-[32px] border-2 transition-all animate__animated animate__fadeInUp ${idx === 0 ? 'border-[#52B788] bg-[#F7FCF9] shadow-md' : 'border-stone-50 bg-white'}`;
-                card.style.animationDelay = `${idx * 0.2}s`;
+                card.className = `p-6 rounded-[32px] border-2 mb-4 ${idx === 0 ? 'border-[#52B788] bg-[#F7FCF9]' : 'border-stone-50 bg-white'}`;
                 card.innerHTML = `
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full uppercase tracking-widest">MATCH ${job.total_score || '85'}%</span>
-                        ${idx === 0 ? '<span class="text-[10px] font-bold text-[#52B788]">BEST CHOICE</span>' : ''}
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full">MATCH ${job.total_score || '85'}%</span>
                     </div>
-                    <h5 class="text-xl font-bold text-[#1B4332] mb-3">${job.job_name}</h5>
-                    <div class="flex flex-wrap gap-2 mt-4">
-                        ${(job.matches || []).slice(0, 3).map(m => `<span class="text-[10px] text-[#40916C] bg-white border border-[#D8F3DC] px-2 py-1 rounded-lg"># ${m}</span>`).join('')}
+                    <h5 class="text-xl font-bold text-[#1B4332]">${job.job_name}</h5>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        ${(job.matches || []).map(m => `<span class="text-[10px] text-[#40916C] bg-white border border-[#D8F3DC] px-2 py-1 rounded-lg"># ${m}</span>`).join('')}
                     </div>
                 `;
                 jobList.appendChild(card);
