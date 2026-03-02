@@ -70,7 +70,32 @@
         </section>
 
         <section id="view-result" class="hidden animate__animated animate__fadeInUp">
-            <div class="bg-white rounded-[40px] p-8 shadow-2xl border border-emerald-50 mb-8">
+            
+            <div id="student-profile-card" class="bg-white rounded-[40px] p-8 shadow-xl border border-emerald-50 mb-6 hidden">
+                <div class="flex items-center gap-4 mb-6 pb-6 border-b border-stone-100">
+                    <div class="w-16 h-16 bg-[#D8F3DC] rounded-full flex items-center justify-center text-3xl shadow-inner">🎓</div>
+                    <div>
+                        <h3 id="profile-name" class="text-2xl font-black text-[#1B4332]"></h3>
+                        <p id="profile-school" class="text-sm font-bold text-[#52B788] tracking-widest mt-1"></p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <span class="block text-[10px] font-black text-stone-300 uppercase tracking-widest mb-2">硬實力 HARD SKILLS</span>
+                        <div id="profile-hard" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-black text-stone-300 uppercase tracking-widest mb-2">軟實力 SOFT SKILLS</span>
+                        <div id="profile-soft" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-black text-stone-300 uppercase tracking-widest mb-2 mt-2">興趣動機 INTERESTS</span>
+                        <div id="profile-interest" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[40px] p-8 shadow-xl border border-emerald-50 mb-8">
                 <div class="bg-[#F7FCF9] rounded-[30px] p-6 mb-8 relative border border-[#E8F5EE] shadow-inner">
                     <span class="absolute -top-4 -left-2 text-5xl text-[#D8F3DC]">“</span>
                     <p id="ai-feedback" class="text-stone-600 leading-relaxed italic relative z-10 text-sm md:text-base"></p>
@@ -78,6 +103,7 @@
                 <h4 class="text-center text-[10px] font-black text-stone-300 uppercase tracking-[0.4em] mb-6">最佳職涯推薦</h4>
                 <div id="job-list" class="space-y-4"></div>
             </div>
+            
             <button onclick="location.reload()" class="w-full py-4 text-stone-400 font-bold hover:text-[#52B788] transition-colors">重新進行測驗</button>
         </section>
     </main>
@@ -85,6 +111,8 @@
     <script>
         const SKILLS = ["數據統計與程式開發", "工程學與空間營造", "理化實驗與物質檢測", "環境生態與農林實務", "商業企劃與專案管理", "專業法規與政策解讀", "文字撰稿與公關溝通", "視覺設計與影音展演", "醫療生技與公共衛生"];
         let selectedSkills = [];
+        let userName = ""; 
+        
         const skillsContainer = document.getElementById('skills-container');
         SKILLS.forEach(skill => {
             const div = document.createElement('div');
@@ -115,8 +143,10 @@
             showView('view-loading');
 
             const formData = new FormData(form);
+            userName = formData.get('name'); 
+            
             const payload = {
-                "你的大名": formData.get('name'),
+                "你的大名": userName,
                 "學號": formData.get('studentId'),
                 "你的Email": formData.get('email'),
                 "你讀什麼系咧？": formData.get('major'),
@@ -127,7 +157,7 @@
             };
 
             try {
-                // ！！！請確認此為正式 Production Webhook URL ！！！
+                // 正式 Webhook URL
                 const response = await fetch('https://hikko.app.n8n.cloud/webhook/4f54006c-a203-4506-99ec-cd83b3894918', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -139,7 +169,7 @@
                 renderResult(data);
             } catch (err) {
                 console.error(err);
-                alert('系統連線異常：' + err.message + '\n請確認 n8n 已切換至 Active 模式。');
+                alert('系統連線異常：' + err.message + '\\n請確認 n8n 已切換至 Active 模式。');
                 showView('view-form');
             }
         };
@@ -148,30 +178,76 @@
             showView('view-result');
             console.log("收到資料:", data);
 
-            // 1. 取得 AI 輸出內容 (處理單一物件或陣列包裹)
+            // 🚨 【新增防護網】：攔截系所未知的錯誤
             let rawData = Array.isArray(data) ? data[0] : data;
-            let fullContent = rawData.output || rawData.text || "";
-            
-            // 2. 解析回饋文字與 JSON 資料
-            let feedbackText = fullContent.split('[{"job_name"')[0].trim();
-            document.getElementById('ai-feedback').innerText = feedbackText || "分析完成！祝你職涯順利。";
-
-            // 3. 取得職缺清單
-            let jobs = [];
-            if (rawData.recommended_jobs) {
-                jobs = rawData.recommended_jobs;
-            } else if (fullContent.includes('[{"job_name"')) {
-                try {
-                    const jsonPart = fullContent.match(/\[\{"job_name".*\}\]/);
-                    if (jsonPart) jobs = JSON.parse(jsonPart[0]);
-                } catch (e) { console.error("職缺清單解析失敗", e); }
+            if (rawData.error === true && rawData.error_type === "UNKNOWN_MAJOR") {
+                document.getElementById('view-result').innerHTML = `
+                    <div class="bg-white rounded-[40px] p-8 shadow-xl border border-emerald-50 mb-8 text-center animate__animated animate__shakeX">
+                        <div class="text-6xl mb-4 mt-4">🤔</div>
+                        <h3 class="text-2xl font-black text-[#1B4332] mb-4">找不到這個系所耶...</h3>
+                        <p class="text-stone-500 mb-8 leading-relaxed">AI 顧問好像認不出你輸入的科系名稱。<br>可以試著輸入<b>全名</b>或是<b>最常見的系名</b>嗎？</p>
+                        <button onclick="showView('view-form')" class="w-full bg-[#52B788] hover:bg-[#2D6A4F] text-white py-4 rounded-full text-lg font-bold transition-all shadow-md active:scale-95">返回修改科系</button>
+                    </div>
+                `;
+                return; // 終止後續的渲染，停在這裡
             }
 
+            // --- 以下是原本正常的渲染邏輯 ---
+            let fullContent = rawData.output || rawData.text || "";
+            let cleanContent = fullContent.replace(/```json\n?|```/g, '').trim();
+            
+            let jobs = [];
+            let profile = null;
+            let feedbackText = cleanContent;
+
+            // 解析包含 profile 與 jobs 的整包 JSON
+            const splitKeyword = '{"student_profile"';
+            if (cleanContent.includes(splitKeyword)) {
+                const splitIndex = cleanContent.indexOf(splitKeyword);
+                feedbackText = cleanContent.substring(0, splitIndex).trim();
+                let jsonString = cleanContent.substring(splitIndex);
+                
+                const lastBraceIndex = jsonString.lastIndexOf('}');
+                if(lastBraceIndex !== -1) {
+                    jsonString = jsonString.substring(0, lastBraceIndex + 1);
+                }
+
+                try {
+                    const parsedData = JSON.parse(jsonString);
+                    jobs = parsedData.recommended_jobs || [];
+                    profile = parsedData.student_profile || null;
+                } catch (e) { console.error("解析完整資料失敗", e); }
+            }
+
+            // 渲染 AI 回饋
+            document.getElementById('ai-feedback').innerText = feedbackText || "分析完成！祝你職涯順利。";
+
+            // 渲染個人檔案卡片
+            if (profile) {
+                document.getElementById('profile-name').innerText = userName;
+                document.getElementById('profile-school').innerText = `${profile.college || '未知學院'} / ${profile.major || '未知科系'}`;
+                
+                document.getElementById('profile-hard').innerHTML = (profile.hard_skills || []).map(s => 
+                    `<span class="text-xs bg-[#E8F5EE] text-[#2D6A4F] px-2 py-1 rounded-md shadow-sm border border-[#D8F3DC]">${s.split('（')[0]}</span>`
+                ).join('');
+                
+                document.getElementById('profile-soft').innerHTML = (profile.soft_skills || []).map(s => 
+                    `<span class="text-xs bg-white text-stone-500 px-2 py-1 rounded-md shadow-sm border border-stone-200">${s}</span>`
+                ).join('');
+
+                document.getElementById('profile-interest').innerHTML = (profile.interests || []).map(s => 
+                    `<span class="text-xs bg-[#FFF8E7] text-[#D4A373] px-2 py-1 rounded-md shadow-sm border border-[#FAEDCD]">${s}</span>`
+                ).join('');
+                
+                document.getElementById('student-profile-card').classList.remove('hidden');
+            }
+
+            // 渲染職缺清單
             const jobList = document.getElementById('job-list');
             jobList.innerHTML = '';
             
             if (jobs.length === 0) {
-                jobList.innerHTML = '<p class="text-center text-stone-400 py-10 text-sm">正在產生結果，請再試一次。</p>';
+                jobList.innerHTML = '<p class="text-center text-stone-400 py-10 text-sm">目前無精準匹配結果，建議豐富你的故事內容喔！</p>';
                 return;
             }
 
@@ -181,7 +257,7 @@
                 card.style.animationDelay = `${idx * 0.2}s`;
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full">MATCH ${job.total_score || '85'}%</span>
+                        <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full uppercase tracking-widest">MATCH ${job.total_score || '85'}%</span>
                     </div>
                     <h5 class="text-xl font-bold text-[#1B4332]">${job.job_name}</h5>
                     <div class="flex flex-wrap gap-2 mt-3">
