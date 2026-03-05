@@ -247,12 +247,10 @@
                 return; 
             }
 
-            let fullContent = rawData.output || rawData.text || "";
-            let cleanContent = fullContent.replace(/```json\n?|```/g, '').trim();
+            let feedbackText = rawData.output || rawData.text || "";
+            let profile = rawData.student_profile || null;
+            let jobs = rawData.recommended_jobs || [];
             
-            let jobs = [];
-            let profile = null;
-            let feedbackText = cleanContent;
 
             const splitKeyword = '{"student_profile"';
             if (cleanContent.includes(splitKeyword)) {
