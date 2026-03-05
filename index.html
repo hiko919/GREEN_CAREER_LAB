@@ -44,7 +44,7 @@
                         <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">基本資訊</h4>
                         <input type="text" name="name" required placeholder="姓名" class="w-full bg-white/50 rounded-2xl p-4 shadow-inner">
                         <input type="text" name="studentId" required placeholder="學號" class="w-full bg-white/50 rounded-2xl p-4 shadow-inner">
-                        <input type="email" name="email" required placeholder="Email" class="w-full bg-white/50 rounded-2xl p-4 shadow-inner">
+                        <input type="email" name="email" required placeholder="Email (請確認填寫正確，這很重要！)" class="w-full bg-white/50 rounded-2xl p-4 shadow-inner">
                         <input type="text" name="major" required placeholder="你讀什麼系？" class="w-full bg-white/50 rounded-2xl p-4 shadow-inner">
                     </div>
                     
@@ -166,20 +166,19 @@
             if (selectedSkills.length === 0) return alert('請至少選擇一個專業硬實力喔！');
             showView('view-loading');
 
-            // --- 🚀 新增：動態 Loading 文字輪播機制 ---
+            // --- 🚀 動態 Loading 文字輪播 ---
             const loadingTexts = [
                 "📡 正在傳送你的經歷至綠領資料庫...",
                 "🕵️‍♂️ 心理分析師正在萃取你的潛在特質...",
                 "👩‍🔬 職能鑑定師進行硬實力戰鬥評估...",
                 "📊 系統正在配對 30+ 綠領職缺...",
-                "✍️ 資深人資長正在為你撰寫最終回饋...",
-                "✨ 深度解析即將完成，請稍候..."
+                "✍️ 資深主編正在為你撰寫最終回饋...",
+                "✨ 深度解析即將完成，這值得一點等待..."
             ];
             let textIndex = 0;
             const subtextElement = document.getElementById('loading-subtext');
             if (subtextElement) subtextElement.innerText = loadingTexts[0];
             
-            // 每 3.5 秒換一句話，讓使用者知道系統正在認真跑
             window.loadingInterval = setInterval(() => {
                 textIndex = (textIndex + 1) % loadingTexts.length;
                 if (subtextElement) {
@@ -189,15 +188,15 @@
                     subtextElement.innerText = loadingTexts[textIndex];
                 }
             }, 3500);
-            // ------------------------------------------
 
             const formData = new FormData(form);
             userName = formData.get('name'); 
+            const userEmail = formData.get('email'); 
             
             const payload = {
                 "姓名": userName,
                 "學號": formData.get('studentId'),
-                "Email": formData.get('email'),
+                "Email": userEmail,
                 "就讀科系": formData.get('major'),
                 "專業硬實力": selectedSkills,
                 "Q1_思維武器": formData.get('q1_mindset'),
@@ -207,36 +206,74 @@
             };
 
             try {
-                const response = await fetch('https://hikko.app.n8n.cloud/webhook/b3f280df-0daf-424d-a69d-3c54e2cb9370', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify(payload)
-        });
+                // 1. ⚡ 呼叫主線 Webhook (這裡因為 n8n 設為 Immediately，會瞬間完成)
+                await fetch('https://hikko.app.n8n.cloud/webhook/b3f280df-0daf-424d-a69d-3c54e2cb9370', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-                if (!response.ok) throw new Error('伺服器未回傳資料');
-                const data = await response.json();
-                renderResult(data);
+                // 2. 🔄 開啟查詢迴圈 (每 5 秒問一次 Google Sheets)
+                window.checkResultLoop = setInterval(async () => {
+                    try {
+                        // ⚠️ 記得替換這裡的 URL 為你的「查詢 Webhook」！
+                        const checkUrl = `https://hikko.app.n8n.cloud/webhook/check-result?email=${encodeURIComponent(userEmail)}`;
+                        const checkRes = await fetch(checkUrl);
+                        
+                        // 如果 n8n 那邊還沒找到資料，可能會回傳錯誤，我們把它 catch 起來繼續等
+                        if (!checkRes.ok) return; 
+
+                        const resultData = await checkRes.json();
+
+                        // 判斷是否已經有 AI回饋 (代表大魔王寫完並存進表單了)
+                        if (resultData && resultData.length > 0 && resultData[0]["AI回饋"]) {
+                            
+                            // 算完了！立刻停止所有迴圈
+                            clearInterval(window.checkResultLoop);
+                            clearInterval(window.loadingInterval);
+
+                            // 將 Google Sheets 抓下來的資料，包裝成 renderResult 習慣的乾淨格式
+                            const sheetRow = resultData[0];
+                            const finalData = {
+                                output: sheetRow["AI回饋"],
+                                student_profile: {
+                                    college: sheetRow["判斷學院"] || "未知學院",
+                                    major: sheetRow["判斷科系"] || "未知科系",
+                                    hard_skills: sheetRow["硬實力"] ? sheetRow["硬實力"].split(', ') : [],
+                                    soft_skills: sheetRow["軟實力"] ? sheetRow["軟實力"].split(', ') : [],
+                                    interests: sheetRow["興趣動機"] ? sheetRow["興趣動機"].split(', ') : []
+                                },
+                                recommended_jobs: [
+                                    { job_name: sheetRow["推薦職缺1"], matches: [] },
+                                    { job_name: sheetRow["推薦職缺2"], matches: [] }
+                                ]
+                            };
+
+                            renderResult(finalData); 
+                        }
+                    } catch (loopErr) {
+                        console.log("AI 仍在運算中...", loopErr);
+                    }
+                }, 5000); // 5 秒
+
             } catch (err) {
                 console.error(err);
-                // 發生錯誤也要記得關掉動畫輪播
                 if (window.loadingInterval) clearInterval(window.loadingInterval); 
+                if (window.checkResultLoop) clearInterval(window.checkResultLoop);
                 alert('系統連線異常：' + err.message);
                 showView('view-form');
             }
         };
 
         function renderResult(data) {
-            // --- 🛑 關閉 Loading 動畫輪播 ---
+            // 保險起見再清一次計時器
             if (window.loadingInterval) clearInterval(window.loadingInterval);
-            if (window.checkResultLoop) clearInterval(window.checkResultLoop); // 預防你有加上迴圈
+            if (window.checkResultLoop) clearInterval(window.checkResultLoop);
 
             showView('view-result');
             
             let rawData = Array.isArray(data) ? data[0] : data;
             
-            // 攔截未知科系錯誤
             if (rawData.error === true && rawData.error_type === "UNKNOWN_MAJOR") {
                 document.getElementById('view-result').innerHTML = `
                     <div class="bg-white rounded-[40px] p-8 shadow-xl border border-emerald-50 mb-8 text-center animate__animated animate__shakeX">
@@ -249,16 +286,14 @@
                 return; 
             }
 
-            // 🔥 終極淨化版：因為 n8n 已經把資料整理得超乾淨，我們「完全不需要」再切字串了！
-            // 直接優雅地把三個變數抓出來
+            // 抓取乾淨的 JSON 變數
             let feedbackText = rawData.output || rawData.text || "分析完成！祝你職涯順利。";
             let profile = rawData.student_profile || null;
             let jobs = rawData.recommended_jobs || [];
 
-            // 渲染 AI 回饋
+            // 渲染
             document.getElementById('ai-feedback').innerText = feedbackText;
 
-            // 渲染個人檔案卡片
             if (profile) {
                 document.getElementById('profile-name').innerText = userName;
                 document.getElementById('profile-school').innerText = `${profile.college || '未知學院'} / ${profile.major || '未知科系'}`;
@@ -278,7 +313,6 @@
                 document.getElementById('student-profile-card').classList.remove('hidden');
             }
 
-            // 渲染職缺清單
             const jobList = document.getElementById('job-list');
             jobList.innerHTML = '';
             
@@ -293,33 +327,7 @@
                 card.style.animationDelay = `${idx * 0.2}s`;
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full uppercase tracking-widest">MATCH ${job.total_score || '85'}%</span>
-                    </div>
-                    <h5 class="text-xl font-bold text-[#1B4332]">${job.job_name}</h5>
-                    <div class="flex flex-wrap gap-2 mt-3">
-                        ${(job.matches || []).map(m => `<span class="text-[10px] text-[#40916C] bg-white border border-[#D8F3DC] px-2 py-1 rounded-lg"># ${m}</span>`).join('')}
-                    </div>
-                `;
-                jobList.appendChild(card);
-            });
-        }
-
-            // 渲染職缺清單
-            const jobList = document.getElementById('job-list');
-            jobList.innerHTML = '';
-            
-            if (jobs.length === 0) {
-                jobList.innerHTML = '<p class="text-center text-stone-400 py-10 text-sm">目前無精準匹配結果，建議豐富你的故事內容喔！</p>';
-                return;
-            }
-
-            jobs.forEach((job, idx) => {
-                const card = document.createElement('div');
-                card.className = `p-6 rounded-[32px] border-2 mb-4 animate__animated animate__fadeInUp ${idx === 0 ? 'border-[#52B788] bg-[#F7FCF9] shadow-md' : 'border-stone-50 bg-white'}`;
-                card.style.animationDelay = `${idx * 0.2}s`;
-                card.innerHTML = `
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full uppercase tracking-widest">MATCH ${job.total_score || '85'}%</span>
+                        <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full uppercase tracking-widest">MATCH RECOMENDATION</span>
                     </div>
                     <h5 class="text-xl font-bold text-[#1B4332]">${job.job_name}</h5>
                     <div class="flex flex-wrap gap-2 mt-3">
