@@ -228,9 +228,9 @@
         };
 
         function renderResult(data) {
-            // --- 🛑 新增：收到資料後關閉 Loading 動畫輪播 ---
+            // --- 🛑 關閉 Loading 動畫輪播 ---
             if (window.loadingInterval) clearInterval(window.loadingInterval);
-            // --------------------------------------
+            if (window.checkResultLoop) clearInterval(window.checkResultLoop); // 預防你有加上迴圈
 
             showView('view-result');
             
@@ -249,31 +249,14 @@
                 return; 
             }
 
-            let feedbackText = rawData.output || rawData.text || "";
+            // 🔥 終極淨化版：因為 n8n 已經把資料整理得超乾淨，我們「完全不需要」再切字串了！
+            // 直接優雅地把三個變數抓出來
+            let feedbackText = rawData.output || rawData.text || "分析完成！祝你職涯順利。";
             let profile = rawData.student_profile || null;
             let jobs = rawData.recommended_jobs || [];
-            
-
-            const splitKeyword = '{"student_profile"';
-            if (cleanContent.includes(splitKeyword)) {
-                const splitIndex = cleanContent.indexOf(splitKeyword);
-                feedbackText = cleanContent.substring(0, splitIndex).trim();
-                let jsonString = cleanContent.substring(splitIndex);
-                
-                const lastBraceIndex = jsonString.lastIndexOf('}');
-                if(lastBraceIndex !== -1) {
-                    jsonString = jsonString.substring(0, lastBraceIndex + 1);
-                }
-
-                try {
-                    const parsedData = JSON.parse(jsonString);
-                    jobs = parsedData.recommended_jobs || [];
-                    profile = parsedData.student_profile || null;
-                } catch (e) { console.error("解析完整資料失敗", e); }
-            }
 
             // 渲染 AI 回饋
-            document.getElementById('ai-feedback').innerText = feedbackText || "分析完成！祝你職涯順利。";
+            document.getElementById('ai-feedback').innerText = feedbackText;
 
             // 渲染個人檔案卡片
             if (profile) {
@@ -294,6 +277,32 @@
                 
                 document.getElementById('student-profile-card').classList.remove('hidden');
             }
+
+            // 渲染職缺清單
+            const jobList = document.getElementById('job-list');
+            jobList.innerHTML = '';
+            
+            if (jobs.length === 0) {
+                jobList.innerHTML = '<p class="text-center text-stone-400 py-10 text-sm">目前無精準匹配結果，建議豐富你的故事內容喔！</p>';
+                return;
+            }
+
+            jobs.forEach((job, idx) => {
+                const card = document.createElement('div');
+                card.className = `p-6 rounded-[32px] border-2 mb-4 animate__animated animate__fadeInUp ${idx === 0 ? 'border-[#52B788] bg-[#F7FCF9] shadow-md' : 'border-stone-50 bg-white'}`;
+                card.style.animationDelay = `${idx * 0.2}s`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full uppercase tracking-widest">MATCH ${job.total_score || '85'}%</span>
+                    </div>
+                    <h5 class="text-xl font-bold text-[#1B4332]">${job.job_name}</h5>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        ${(job.matches || []).map(m => `<span class="text-[10px] text-[#40916C] bg-white border border-[#D8F3DC] px-2 py-1 rounded-lg"># ${m}</span>`).join('')}
+                    </div>
+                `;
+                jobList.appendChild(card);
+            });
+        }
 
             // 渲染職缺清單
             const jobList = document.getElementById('job-list');
