@@ -49,7 +49,8 @@
                     </div>
                     
                     <div class="space-y-4">
-                        <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">專業硬實力 (選 1-3 個)[正在學習或有興趣的」</h4>
+                        <h4 class="text-[#2D6A4F] font-bold border-l-4 border-[#52B788] pl-3">專業硬實力 (選 1-3 個)</h4>
+                        <p class="text-xs text-stone-400">正在學習或有興趣的也可以</p>
                         <div id="skills-container" class="grid grid-cols-1 gap-2"></div>
                     </div>
                     
@@ -85,9 +86,10 @@
         <section id="view-loading" class="hidden text-center py-24">
             <div class="relative inline-block mb-10">
                 <div class="w-24 h-24 border-8 border-white loader rounded-full animate-spin"></div>
-                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl">🔬</div>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl animate-pulse">🔬</div>
             </div>
-            <h3 id="loading-text" class="text-xl font-bold text-[#1B4332]">AI 顧問正在分析你的故事...</h3>
+            <h3 id="loading-text" class="text-xl font-bold text-[#1B4332] mb-2">AI 綠領顧問團隊正在為你分析...</h3>
+            <p id="loading-subtext" class="text-[#52B788] font-bold text-sm tracking-widest animate__animated animate__fadeIn"></p>
         </section>
 
         <section id="view-result" class="hidden animate__animated animate__fadeInUp">
@@ -164,10 +166,34 @@
             if (selectedSkills.length === 0) return alert('請至少選擇一個專業硬實力喔！');
             showView('view-loading');
 
+            // --- 🚀 新增：動態 Loading 文字輪播機制 ---
+            const loadingTexts = [
+                "📡 正在傳送你的經歷至綠領資料庫...",
+                "🕵️‍♂️ 心理分析師正在萃取你的潛在特質...",
+                "👩‍🔬 職能鑑定師進行硬實力戰鬥評估...",
+                "📊 系統正在配對 30+ 綠領職缺...",
+                "✍️ 資深人資長正在為你撰寫最終回饋...",
+                "✨ 深度解析即將完成，請稍候..."
+            ];
+            let textIndex = 0;
+            const subtextElement = document.getElementById('loading-subtext');
+            if (subtextElement) subtextElement.innerText = loadingTexts[0];
+            
+            // 每 3.5 秒換一句話，讓使用者知道系統正在認真跑
+            window.loadingInterval = setInterval(() => {
+                textIndex = (textIndex + 1) % loadingTexts.length;
+                if (subtextElement) {
+                    subtextElement.classList.remove('animate__fadeIn'); 
+                    void subtextElement.offsetWidth; // 觸發重繪
+                    subtextElement.classList.add('animate__fadeIn');
+                    subtextElement.innerText = loadingTexts[textIndex];
+                }
+            }, 3500);
+            // ------------------------------------------
+
             const formData = new FormData(form);
             userName = formData.get('name'); 
             
-            // 🚨 注意：這裡的 Payload Keys 已經升級，請在新版 n8n 中使用這些名稱！
             const payload = {
                 "姓名": userName,
                 "學號": formData.get('studentId'),
@@ -181,7 +207,6 @@
             };
 
             try {
-                // ！！！請確認這裡換成你 n8n 2.0 副本的 Webhook URL ！！！
                 const response = await fetch('https://hikko.app.n8n.cloud/webhook/b3f280df-0daf-424d-a69d-3c54e2cb9370', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -193,12 +218,18 @@
                 renderResult(data);
             } catch (err) {
                 console.error(err);
+                // 發生錯誤也要記得關掉動畫輪播
+                if (window.loadingInterval) clearInterval(window.loadingInterval); 
                 alert('系統連線異常：' + err.message);
                 showView('view-form');
             }
         };
 
         function renderResult(data) {
+            // --- 🛑 新增：收到資料後關閉 Loading 動畫輪播 ---
+            if (window.loadingInterval) clearInterval(window.loadingInterval);
+            // --------------------------------------
+
             showView('view-result');
             
             let rawData = Array.isArray(data) ? data[0] : data;
