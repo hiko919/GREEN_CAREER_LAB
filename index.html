@@ -241,8 +241,9 @@
 
                     window.checkResultLoop = setInterval(async () => {
                         try {
-                            const checkUrl = `https://hikko.app.n8n.cloud/webhook/check-result?email=${encodeURIComponent(userEmail)}`;
-                            const checkRes = await fetch(checkUrl);
+                            // 🔥 終極快取破解法：在網址後面加上時間戳記 &t=...，並且強制不使用快取
+                            const checkUrl = `https://hikko.app.n8n.cloud/webhook/check-result?email=${encodeURIComponent(userEmail)}&t=${new Date().getTime()}`;
+                            const checkRes = await fetch(checkUrl, { cache: 'no-store' });
                             
                             if (!checkRes.ok) return; 
 
@@ -276,7 +277,19 @@
                                     try {
                                         const parsed = JSON.parse(jsonString);
                                         studentProfile = parsed.student_profile;
-                                        jobs = parsed.recommended_jobs;
+                                        
+                                        // 🔥 AI 雙胞胎過濾器：拔掉重複名稱的職缺
+                                        let rawJobs = parsed.recommended_jobs || [];
+                                        let uniqueJobs = [];
+                                        let seenNames = new Set();
+                                        rawJobs.forEach(j => {
+                                            if (!seenNames.has(j.job_name)) {
+                                                uniqueJobs.push(j);
+                                                seenNames.add(j.job_name);
+                                            }
+                                        });
+                                        jobs = uniqueJobs;
+
                                     } catch (e) {
                                         console.error("JSON 解析失敗", e);
                                     }
@@ -350,7 +363,6 @@
             let profile = rawData.student_profile || null;
             let jobs = rawData.recommended_jobs || [];
 
-            // 雙回饋填寫
             const hrFeedbackEl = document.getElementById('hr-feedback');
             if(hrFeedbackEl) hrFeedbackEl.innerText = rawData.hr_feedback || "HR 分析完成。";
 
@@ -381,13 +393,11 @@
                     `<span class="text-xs bg-[#FFF8E7] text-[#D4A373] px-2 py-1 rounded-md shadow-sm border border-[#FAEDCD]">${String(s).replace(/[\[\]"']/g, '')}</span>`
                 ).join('');
 
-                // 填入戰鬥評估
                 if(profileAssessment) profileAssessment.innerText = profile.capability_assessment || "已完成初步評估。";
                 
                 if(profileCard) profileCard.classList.remove('hidden');
             }
 
-            // 將職缺依據 Match 趴數從高到低排序
             jobs.sort((a, b) => {
                 let scoreA = parseInt(a.total_score) || 0;
                 let scoreB = parseInt(b.total_score) || 0;
