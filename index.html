@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>綠領職涯 DNA 探測 | 臺大學生會永續組</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
@@ -112,17 +112,38 @@
                         <div id="profile-interest" class="flex flex-wrap gap-2"></div>
                     </div>
                 </div>
+                
+                <div class="mt-6 pt-6 border-t border-stone-100">
+                    <span class="block text-[10px] font-black text-[#52B788] uppercase tracking-widest mb-2">職能鑑定評估 CAPABILITY ASSESSMENT</span>
+                    <p id="profile-assessment" class="text-sm text-stone-600 leading-relaxed font-medium"></p>
+                </div>
             </div>
 
             <div class="bg-white rounded-[40px] p-8 shadow-xl border border-emerald-50 mb-8">
+                
+                <h4 class="text-center text-[#1B4332] font-black tracking-widest mb-4">HR 長的專業洞察</h4>
                 <div class="bg-[#F7FCF9] rounded-[30px] p-6 mb-8 relative border border-[#E8F5EE] shadow-inner">
                     <span class="absolute -top-4 -left-2 text-5xl text-[#D8F3DC]">“</span>
-                    <p id="ai-feedback" class="text-stone-600 leading-relaxed italic relative z-10 text-sm md:text-base"></p>
+                    <p id="hr-feedback" class="text-stone-600 leading-relaxed relative z-10 text-sm md:text-base whitespace-pre-wrap"></p>
                 </div>
-                <h4 class="text-center text-[10px] font-black text-stone-300 uppercase tracking-[0.4em] mb-6">最佳職涯推薦</h4>
+
+                <h4 class="text-center text-[#1B4332] font-black tracking-widest mb-4">專屬職涯建議</h4>
+                <div class="bg-[#FFFDF7] rounded-[30px] p-6 mb-10 relative border border-[#FAEDCD] shadow-inner">
+                    <span class="absolute -top-4 -left-2 text-4xl">💡</span>
+                    <p id="career-feedback" class="text-stone-700 font-medium leading-relaxed relative z-10 text-sm md:text-base whitespace-pre-wrap"></p>
+                </div>
+
+                <h4 class="text-center text-[10px] font-black text-stone-300 uppercase tracking-[0.4em] mb-6">最佳職缺推薦</h4>
                 <div id="job-list" class="space-y-4"></div>
             </div>
             
+            <div class="text-center mb-8 animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+                <div class="inline-block bg-gradient-to-r from-[#52B788] to-[#2D6A4F] text-white rounded-[30px] px-8 py-6 shadow-xl w-full border border-[#40916C]">
+                    <p class="font-black text-xl tracking-widest mb-2 text-[#D8F3DC]">遇見你的永續未來 🌱</p>
+                    <p class="font-bold text-md leading-relaxed">歡迎來參加 4/25 的綠領企業說明會！<br><span class="text-sm font-normal opacity-80 mt-1 block">一起將測驗結果化為真實的職涯下一步</span></p>
+                </div>
+            </div>
+
             <button onclick="location.reload()" class="w-full py-4 text-stone-400 font-bold hover:text-[#52B788] transition-colors">重新進行測驗</button>
         </section>
     </main>
@@ -161,6 +182,11 @@
             window.scrollTo(0, 0);
         }
 
+        function cleanUglyArray(str) {
+            if(!str) return [];
+            return String(str).replace(/[\[\]"']/g, '').split(',').map(s => s.trim()).filter(s => s);
+        }
+
         const form = document.getElementById('quizForm');
         if(form) {
             form.onsubmit = async (e) => {
@@ -168,7 +194,6 @@
                 if (selectedSkills.length === 0) return alert('請至少選擇一個專業硬實力喔！');
                 showView('view-loading');
 
-                // 啟動文字動畫
                 const loadingTexts = [
                     "📡 正在傳送你的經歷至綠領資料庫...",
                     "🕵️‍♂️ 心理分析師正在萃取你的潛在特質...",
@@ -208,17 +233,14 @@
                 };
 
                 try {
-                    // ⚡ 1. 呼叫主線 Webhook
                     await fetch('https://hikko.app.n8n.cloud/webhook/b3f280df-0daf-424d-a69d-3c54e2cb9370', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
-                    // 🔄 2. 啟動查詢迴圈
                     window.checkResultLoop = setInterval(async () => {
                         try {
-                            // ⚠️ 呼叫查詢用的 Webhook
                             const checkUrl = `https://hikko.app.n8n.cloud/webhook/check-result?email=${encodeURIComponent(userEmail)}`;
                             const checkRes = await fetch(checkUrl);
                             
@@ -226,25 +248,63 @@
 
                             const resultData = await checkRes.json();
 
-                            // 確認是否已經算完並寫入 AI回饋
-                            if (resultData && resultData.length > 0 && resultData[0]["AI回饋"]) {
+                            if (resultData && resultData.length > 0 && resultData[0]["HR回饋"]) {
                                 clearInterval(window.checkResultLoop);
                                 clearInterval(window.loadingInterval);
 
                                 const sheetRow = resultData[0];
-                                const finalData = {
-                                    output: sheetRow["AI回饋"],
-                                    student_profile: {
+                                
+                                let finalHumanFeedback = sheetRow["最終回饋"] || ""; 
+                                let rawOutputForJson = sheetRow["HR回饋"]; 
+                                
+                                let cleanContent = rawOutputForJson.replace(/```json\n?|```/g, '').trim();
+                                let hrLetter = ""; 
+                                let studentProfile = null;
+                                let jobs = [];
+
+                                const splitKeyword = '{"student_profile"';
+                                if (cleanContent.includes(splitKeyword)) {
+                                    const splitIndex = cleanContent.indexOf(splitKeyword);
+                                    hrLetter = cleanContent.substring(0, splitIndex).trim();
+                                    
+                                    let jsonString = cleanContent.substring(splitIndex);
+                                    const lastBraceIndex = jsonString.lastIndexOf('}');
+                                    if (lastBraceIndex !== -1) {
+                                        jsonString = jsonString.substring(0, lastBraceIndex + 1);
+                                    }
+
+                                    try {
+                                        const parsed = JSON.parse(jsonString);
+                                        studentProfile = parsed.student_profile;
+                                        jobs = parsed.recommended_jobs;
+                                    } catch (e) {
+                                        console.error("JSON 解析失敗", e);
+                                    }
+                                }
+
+                                if (!studentProfile) {
+                                    studentProfile = {
                                         college: sheetRow["判斷學院"] || "未知學院",
                                         major: sheetRow["判斷科系"] || "未知科系",
-                                        hard_skills: sheetRow["硬實力"] ? sheetRow["硬實力"].split(', ') : [],
-                                        soft_skills: sheetRow["軟實力"] ? sheetRow["軟實力"].split(', ') : [],
-                                        interests: sheetRow["興趣動機"] ? sheetRow["興趣動機"].split(', ') : []
-                                    },
-                                    recommended_jobs: [
-                                        { job_name: sheetRow["推薦職缺1"], matches: [] },
-                                        { job_name: sheetRow["推薦職缺2"], matches: [] }
-                                    ]
+                                        hard_skills: cleanUglyArray(sheetRow["硬實力"]),
+                                        soft_skills: cleanUglyArray(sheetRow["軟實力"]),
+                                        interests: cleanUglyArray(sheetRow["興趣動機"]),
+                                        capability_assessment: "職能評估完成。"
+                                    };
+                                }
+
+                                if (!jobs || jobs.length === 0) {
+                                    jobs = [
+                                        { job_name: sheetRow["推薦職缺1"], matches: [], total_score: 90 },
+                                        { job_name: sheetRow["推薦職缺2"], matches: [], total_score: 85 }
+                                    ].filter(j => j.job_name);
+                                }
+
+                                const finalData = {
+                                    hr_feedback: hrLetter,
+                                    career_advice: finalHumanFeedback,
+                                    student_profile: studentProfile,
+                                    recommended_jobs: jobs
                                 };
 
                                 renderResult(finalData); 
@@ -272,7 +332,6 @@
             
             let rawData = Array.isArray(data) ? data[0] : data;
             
-            // 處理未知科系錯誤
             if (rawData.error === true && rawData.error_type === "UNKNOWN_MAJOR") {
                 const resultView = document.getElementById('view-result');
                 if(resultView) {
@@ -288,12 +347,15 @@
                 return; 
             }
 
-            let feedbackText = rawData.output || rawData.text || "分析完成！祝你職涯順利。";
             let profile = rawData.student_profile || null;
             let jobs = rawData.recommended_jobs || [];
 
-            const feedbackEl = document.getElementById('ai-feedback');
-            if(feedbackEl) feedbackEl.innerText = feedbackText;
+            // 雙回饋填寫
+            const hrFeedbackEl = document.getElementById('hr-feedback');
+            if(hrFeedbackEl) hrFeedbackEl.innerText = rawData.hr_feedback || "HR 分析完成。";
+
+            const careerFeedbackEl = document.getElementById('career-feedback');
+            if(careerFeedbackEl) careerFeedbackEl.innerText = rawData.career_advice || "職涯建議生成中...";
 
             if (profile) {
                 const profileName = document.getElementById('profile-name');
@@ -301,25 +363,36 @@
                 const profileHard = document.getElementById('profile-hard');
                 const profileSoft = document.getElementById('profile-soft');
                 const profileInterest = document.getElementById('profile-interest');
+                const profileAssessment = document.getElementById('profile-assessment');
                 const profileCard = document.getElementById('student-profile-card');
 
                 if(profileName) profileName.innerText = userName;
                 if(profileSchool) profileSchool.innerText = `${profile.college || '未知學院'} / ${profile.major || '未知科系'}`;
                 
                 if(profileHard) profileHard.innerHTML = (profile.hard_skills || []).map(s => 
-                    `<span class="text-xs bg-[#E8F5EE] text-[#2D6A4F] px-2 py-1 rounded-md shadow-sm border border-[#D8F3DC]">${s.split('（')[0]}</span>`
+                    `<span class="text-xs bg-[#E8F5EE] text-[#2D6A4F] px-2 py-1 rounded-md shadow-sm border border-[#D8F3DC]">${String(s).split('（')[0].replace(/[\[\]"']/g, '')}</span>`
                 ).join('');
                 
                 if(profileSoft) profileSoft.innerHTML = (profile.soft_skills || []).map(s => 
-                    `<span class="text-xs bg-white text-stone-500 px-2 py-1 rounded-md shadow-sm border border-stone-200">${s}</span>`
+                    `<span class="text-xs bg-white text-stone-500 px-2 py-1 rounded-md shadow-sm border border-stone-200">${String(s).replace(/[\[\]"']/g, '')}</span>`
                 ).join('');
 
                 if(profileInterest) profileInterest.innerHTML = (profile.interests || []).map(s => 
-                    `<span class="text-xs bg-[#FFF8E7] text-[#D4A373] px-2 py-1 rounded-md shadow-sm border border-[#FAEDCD]">${s}</span>`
+                    `<span class="text-xs bg-[#FFF8E7] text-[#D4A373] px-2 py-1 rounded-md shadow-sm border border-[#FAEDCD]">${String(s).replace(/[\[\]"']/g, '')}</span>`
                 ).join('');
+
+                // 填入戰鬥評估
+                if(profileAssessment) profileAssessment.innerText = profile.capability_assessment || "已完成初步評估。";
                 
                 if(profileCard) profileCard.classList.remove('hidden');
             }
+
+            // 將職缺依據 Match 趴數從高到低排序
+            jobs.sort((a, b) => {
+                let scoreA = parseInt(a.total_score) || 0;
+                let scoreB = parseInt(b.total_score) || 0;
+                return scoreB - scoreA;
+            });
 
             const jobList = document.getElementById('job-list');
             if(jobList) {
@@ -332,10 +405,11 @@
                 jobs.forEach((job, idx) => {
                     const card = document.createElement('div');
                     card.className = `p-6 rounded-[32px] border-2 mb-4 animate__animated animate__fadeInUp ${idx === 0 ? 'border-[#52B788] bg-[#F7FCF9] shadow-md' : 'border-stone-50 bg-white'}`;
-                    card.style.animationDelay = `${idx * 0.2}s`;
+                    card.style.animationDelay = `${idx * 0.15}s`;
                     card.innerHTML = `
                         <div class="flex justify-between items-center mb-2">
-                            <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full uppercase tracking-widest">MATCH RECOMENDATION</span>
+                            <span class="text-[10px] font-black bg-[#D8F3DC] text-[#2D6A4F] px-4 py-1.5 rounded-full uppercase tracking-widest">MATCH ${job.total_score || '85'}%</span>
+                            ${job.recommend_reason ? `<span class="text-[10px] text-stone-400 font-bold tracking-widest">${job.recommend_reason}</span>` : ''}
                         </div>
                         <h5 class="text-xl font-bold text-[#1B4332]">${job.job_name}</h5>
                         <div class="flex flex-wrap gap-2 mt-3">
