@@ -242,7 +242,7 @@
                     window.checkResultLoop = setInterval(async () => {
                         try {
                             // 🔥 終極快取破解法：在網址後面加上時間戳記 &t=...，並且強制不使用快取
-                            const checkUrl = `https://hikko.app.n8n.cloud/webhook/check-result?email=${encodeURIComponent(userEmail)}&t=${new Date().getTime()}`;
+                            const checkUrl = `https://hikko919.app.n8n.cloud/webhook/check-result?email=${encodeURIComponent(userEmail)}&t=${new Date().getTime()}`;
                             const checkRes = await fetch(checkUrl, { cache: 'no-store' });
                             
                             if (!checkRes.ok) return; 
